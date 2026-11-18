@@ -17,10 +17,14 @@
   html, body { width: 100%; height: 100%; overflow: hidden; background: #7b9c59; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--ink-dark); }
   #canvas-container { position: fixed; inset: 0; z-index: 1; }
   canvas { display: block; touch-action: none; }
-  #top-bar { position: fixed; top: 10px; left: 10px; right: 10px; z-index: 25; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
-  .top-pill { display: inline-flex; align-items: center; gap: 9px; background: var(--bar-ivory); border: 1.5px solid var(--bar-border); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 6px 12px; border-radius: 11px; pointer-events: auto; box-shadow: 0 4px 14px rgba(0,0,0,.16); font-size: 12px; font-weight: 700; }
-  .pill-sep { width: 1px; height: 14px; background: rgba(30,36,43,.18); }
-  .pill-item { display: inline-flex; align-items: center; gap: 4px; }
+  #top-bar { position: fixed; top: 10px; left: 10px; right: 10px; z-index: 25; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; pointer-events: none; }
+  .top-pill { display: inline-flex; align-items: center; gap: 8px; min-width: 0; background: var(--bar-ivory); border: 1.5px solid var(--bar-border); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 7px 12px; border-radius: 12px; pointer-events: auto; box-shadow: 0 4px 14px rgba(0,0,0,.16); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pill-sep { width: 1px; height: 15px; background: rgba(30,36,43,.14); flex: 0 0 auto; }
+  .pill-item { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .pill-item svg { opacity: .78; flex: 0 0 auto; }
+  #hud-city { max-width: 108px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #hud-cash { letter-spacing: -.2px; }
+  .pill-crime { padding: 2px 8px; border-radius: 999px; background: rgba(30,36,43,.055); }
   .menu-wrap { position: relative; pointer-events: auto; }
   #btn-three-dots { width: 38px; height: 38px; border-radius: 11px; background: var(--bar-ivory); border: 1.5px solid var(--bar-border); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--ink-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.16); }
   #btn-three-dots.active { background: #fff; border-color: var(--accent-teal); }
@@ -42,16 +46,33 @@
   #btn-settings .gear-chev { width: 12px; height: 12px; flex: 0 0 auto; opacity: .5; transition: transform .18s ease; }
   #btn-settings.active .gear-chev { transform: rotate(180deg); opacity: .8; }
   #btn-settings .gear-label { max-width: 104px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #btn-settings .gear-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-teal); flex: 0 0 auto; opacity: 0; transition: opacity .2s ease; }
+  #btn-settings.has-tool .gear-dot { opacity: 1; }
 
   /* ---- options panel: hidden until the gear is tapped ---- */
   #bottom-bar-wrap { position: fixed; top: 104px; left: 10px; z-index: 30; display: none; flex-direction: column; gap: 7px; width: min(330px, calc(100vw - 20px)); max-height: calc(100vh - 190px); overflow-y: auto; overscroll-behavior: contain; background: var(--bar-ivory); border: 1.5px solid var(--bar-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 14px; padding: 10px; box-shadow: 0 16px 40px rgba(0,0,0,.32); pointer-events: auto; }
   #bottom-bar-wrap.open { display: flex; }
   #bottom-bar-wrap::-webkit-scrollbar { width: 4px; }
   #bottom-bar-wrap::-webkit-scrollbar-thumb { background: rgba(30,36,43,.25); border-radius: 4px; }
+  #bottom-bar-wrap .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -2px -2px 1px; }
+  #bottom-bar-wrap .panel-head-title { font-size: 11px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; color: var(--ink-dark); }
+  #bottom-bar-wrap .panel-close { width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(30,36,43,.14); background: rgba(255,255,255,.7); color: var(--ink-muted); font-size: 13px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  #bottom-bar-wrap .panel-close:hover { background: #fff; color: var(--ink-dark); }
+  #bottom-bar-wrap .panel-search { display: flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: 10px; background: rgba(255,255,255,.85); border: 1.5px solid rgba(30,36,43,.13); }
+  #bottom-bar-wrap .panel-search svg { width: 14px; height: 14px; flex: 0 0 auto; color: var(--ink-muted); }
+  #bottom-bar-wrap .panel-search input { flex: 1 1 auto; min-width: 0; border: none; background: transparent; font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink-dark); outline: none; }
+  #bottom-bar-wrap .panel-search input::placeholder { color: var(--ink-muted); font-weight: 600; }
   #bottom-bar-wrap .panel-title { font-size: 9.5px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; color: var(--ink-muted); padding: 0 2px; margin-top: 1px; }
-  #bottom-bar-wrap .category-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; overflow: visible; max-width: none; background: transparent; border: none; box-shadow: none; padding: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
-  #bottom-bar-wrap .build-dock { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 6px; overflow: visible; max-width: none; background: transparent; border: none; box-shadow: none; padding: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
-  #bottom-bar-wrap .tool-card { min-width: 0; padding: 7px 5px; }
+  #bottom-bar-wrap .category-tabs { display: flex; flex-wrap: nowrap; align-items: center; gap: 5px; overflow-x: auto; overflow-y: hidden; max-width: none; background: transparent; border: none; box-shadow: none; padding: 0 14px 3px 0; backdrop-filter: none; -webkit-backdrop-filter: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent); }
+  @media (min-width: 700px) { #bottom-bar-wrap { width: 372px; } #bottom-bar-wrap .build-dock { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); } }
+  #bottom-bar-wrap .category-tabs::-webkit-scrollbar { display: none; }
+  #bottom-bar-wrap .build-dock { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; overflow: visible; max-width: none; background: transparent; border: none; box-shadow: none; padding: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  #bottom-bar-wrap .tool-card { min-width: 0; padding: 9px 5px 8px; border-radius: 11px; }
+  #bottom-bar-wrap .tool-card svg { width: 22px; height: 22px; }
+  #bottom-bar-wrap .panel-foot { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: 2px; padding: 7px 9px; border-radius: 9px; background: rgba(15,118,110,.08); border: 1px solid rgba(15,118,110,.16); font-size: 11px; font-weight: 700; color: #0b4f4a; }
+  #bottom-bar-wrap .panel-foot .foot-cost { font-family: monospace; font-size: 10.5px; color: var(--accent-teal); }
+  #bottom-bar-wrap .panel-foot .foot-hint { color: var(--ink-muted); font-weight: 600; }
+  #bottom-bar-wrap .dock-empty { grid-column: 1 / -1; padding: 14px 8px; text-align: center; font-size: 11.5px; font-weight: 600; color: var(--ink-muted); }
   .category-tabs { display: flex; align-items: center; gap: 4px; overflow-x: auto; max-width: 100%; background: var(--bar-ivory); border: 1.5px solid var(--bar-border); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 4px 7px; border-radius: 10px; pointer-events: auto; box-shadow: 0 4px 14px rgba(0,0,0,.16); }
   .category-tabs::-webkit-scrollbar { display: none; }
   .cat-tab { padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(30,36,43,.14); background: rgba(255,255,255,.62); font-size: 11.5px; font-weight: 700; color: var(--ink-muted); cursor: pointer; white-space: nowrap; }
@@ -59,20 +80,45 @@
   .build-dock { display: flex; align-items: center; gap: 6px; overflow-x: auto; max-width: 100%; background: var(--bar-ivory); border: 1.5px solid var(--bar-border); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 6px 9px; border-radius: 13px; pointer-events: auto; box-shadow: 0 8px 24px rgba(0,0,0,.24); }
   .build-dock::-webkit-scrollbar { height: 3px; }
   .build-dock::-webkit-scrollbar-thumb { background: rgba(30,36,43,.25); border-radius: 3px; }
-  .tool-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 66px; padding: 6px 7px; border-radius: 9px; background: var(--bar-card); border: 1.5px solid rgba(30,36,43,.12); color: var(--ink-dark); cursor: pointer; flex-shrink: 0; }
+  .tool-card { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 66px; padding: 7px 7px; border-radius: 10px; background: var(--bar-card); border: 1.5px solid rgba(30,36,43,.12); color: var(--ink-dark); cursor: pointer; flex-shrink: 0; transition: background .15s ease, border-color .15s ease, transform .12s ease; }
+  .tool-card:hover { background: #fff; border-color: rgba(15,118,110,.4); }
+  .tool-card:active { transform: scale(.97); }
   .tool-card.active { background: #fff; border-color: var(--accent-teal); box-shadow: inset 0 0 0 1px var(--accent-teal), 0 3px 8px rgba(15,118,110,.2); }
+  .tool-card.active::after { content: ""; position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-teal); }
   .tool-card svg { width: 20px; height: 20px; }
-  .tool-name { font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .tool-name { font-size: 10px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   .tool-cost { font-size: 9px; font-weight: 700; color: var(--accent-teal); font-family: monospace; }
-  #status-banner { position: fixed; bottom: 16px; top: auto; left: 50%; transform: translateX(-50%); z-index: 20; background: var(--bar-ivory); border: 1.5px solid var(--bar-border); padding: 5px 13px; border-radius: 18px; font-size: 11.5px; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,.15); pointer-events: none; opacity: 0; transition: opacity .22s ease; max-width: 92vw; text-align: center; }
-  #status-banner.show { opacity: 1; }
+  #status-banner { position: fixed; bottom: 16px; top: auto; left: 50%; transform: translateX(-50%) translateY(6px); z-index: 20; background: rgba(24,30,36,.94); color: #f5f2eb; border: 1px solid rgba(255,255,255,.14); padding: 8px 15px; border-radius: 12px; font-size: 12px; font-weight: 700; line-height: 1.35; box-shadow: 0 10px 26px rgba(0,0,0,.32); pointer-events: none; opacity: 0; transition: opacity .22s ease, transform .22s ease; max-width: min(92vw, 420px); text-align: center; }
+  #status-banner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   #onscreen-pad { position: fixed; left: 12px; bottom: 124px; z-index: 25; display: none; grid-template-columns: repeat(3,44px); grid-template-rows: repeat(3,44px); gap: 4px; background: var(--bar-ivory); padding: 7px; border-radius: 13px; border: 1.5px solid var(--bar-border); box-shadow: 0 6px 20px rgba(0,0,0,.22); touch-action: none; }
   #onscreen-pad.visible { display: grid; }
   .pad-btn { background: #fff; border: 1.5px solid var(--bar-border); border-radius: 8px; color: var(--ink-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: none; }
   .pad-btn:active { background: #e2e8f0; }
   .modal-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(15,20,26,.62); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 14px; }
   .modal-backdrop.open { display: flex; }
-  .modal-box { width: 100%; max-width: 660px; max-height: 82vh; overflow: hidden; background: #f5f2eb; border: 1.5px solid var(--bar-border); border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(0,0,0,.45); }
+  .modal-box { width: 100%; max-width: 660px; max-height: 86vh; overflow: hidden; background: #f5f2eb; border: 1.5px solid var(--bar-border); border-radius: 18px; display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(0,0,0,.45); }
+  .modal-head { position: sticky; top: 0; z-index: 2; }
+  .ui-btn:hover { background: #fff; border-color: rgba(15,118,110,.45); }
+  .ui-btn.primary:hover { filter: brightness(1.06); }
+  .city-item:hover { border-color: rgba(15,118,110,.45); }
+  .fleet-row:hover { border-color: rgba(15,118,110,.35); }
+  :focus-visible { outline: 2px solid var(--accent-teal); outline-offset: 2px; }
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-thumb { background: rgba(30,36,43,.22); border-radius: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  .svc-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(96px,1fr)); gap: 7px; }
+  @media (max-width: 430px) { .svc-grid { grid-template-columns: repeat(2,1fr); } }
+  .svc-card { background: #fff; border: 1.5px solid rgba(30,36,43,.12); border-radius: 10px; padding: 8px 9px; }
+  .svc-k { font-size: 9.5px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--ink-muted); }
+  .svc-v { font-size: 16px; font-weight: 800; color: var(--ink-dark); margin-top: 2px; }
+  .svc-sub { font-size: 10px; color: var(--ink-muted); font-weight: 600; margin-top: 1px; }
+  .svc-label { font-size: 12px; font-weight: 800; margin-top: 2px; }
+  .svc-list { display: flex; flex-direction: column; gap: 6px; }
+  .svc-row { display: flex; align-items: flex-start; gap: 8px; background: #fff; border: 1.5px solid rgba(30,36,43,.12); border-radius: 9px; padding: 7px 9px; font-size: 12px; }
+  .svc-dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 4px; flex: 0 0 auto; }
+  .svc-st { font-size: 10.5px; color: var(--ink-muted); font-weight: 600; }
+  .svc-empty { font-size: 11.5px; color: var(--ink-muted); background: #fff; border: 1.5px dashed rgba(30,36,43,.18); border-radius: 9px; padding: 10px; }
+  .svc-note { font-size: 11.5px; color: var(--ink-muted); line-height: 1.5; }
   .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid rgba(30,36,43,.12); background: #fff; }
   .modal-head h3 { font-size: 14.5px; font-weight: 800; }
   .modal-body { padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
@@ -331,16 +377,24 @@
 
 <div id="top-bar">
   <div class="top-pill">
-    <span class="pill-item" style="color:#0f766e;">
+    <span class="pill-item" style="color:#0f766e;" title="Where you are">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 21h18M5 21V7l6-4v18M13 21V11l6-3v13"/></svg>
       <span id="hud-city">Loading…</span>
     </span>
     <span class="pill-sep"></span>
-    <span class="pill-item" id="hud-cash">$850,000</span>
+    <span class="pill-item" title="City treasury">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/></svg>
+      <span id="hud-cash">$850,000</span>
+    </span>
     <span class="pill-sep"></span>
-    <span class="pill-item">
+    <span class="pill-item" title="Population">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
       <span id="hud-pop">0</span>
+    </span>
+    <span class="pill-sep"></span>
+    <span class="pill-item pill-crime" title="Crime index — lower is safer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6l7-3z"/><path d="M9 11l2 2 4-4"/></svg>
+      <span id="hud-crime">14</span>
     </span>
   </div>
   <div class="menu-wrap">
@@ -364,6 +418,10 @@
       <button class="dd-item" id="menu-fleet">
         <span class="dd-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.2"><rect x="3" y="6" width="18" height="11" rx="2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M3 11h18"/></svg><span>Vehicles &amp; Driver Fleet</span></span>
         <span class="dd-tag" id="fleet-badge">0</span>
+      </button>
+      <button class="dd-item" id="menu-services">
+        <span class="dd-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6l7-3z"/><path d="M9 11l2 2 4-4"/></svg><span>City Services &amp; Safety</span></span>
+        <span class="dd-tag" id="svc-badge">0</span>
       </button>
       <div class="dd-label">View &amp; Camera</div>
       <button class="dd-item" id="menu-cam-toggle">
@@ -403,15 +461,25 @@
 <div id="status-banner">Two-finger drag to scroll map</div>
 <button id="btn-settings" type="button" aria-expanded="false" aria-controls="bottom-bar-wrap" aria-label="Open build options">
   <svg class="gear-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  <span class="gear-dot"></span>
   <span class="gear-label" id="settings-tool-label">Build</span>
   <svg class="gear-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
 </button>
 
 <div id="bottom-bar-wrap" role="dialog" aria-label="Build options">
+  <div class="panel-head">
+    <span class="panel-head-title">Build menu</span>
+    <button type="button" class="panel-close" id="panel-close" aria-label="Close build menu">&#10005;</button>
+  </div>
+  <div class="panel-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+    <input id="tool-search" type="search" placeholder="Search tools…" autocomplete="off" spellcheck="false" aria-label="Search tools" />
+  </div>
   <div class="panel-title">Category</div>
   <div class="category-tabs" id="category-tabs"></div>
   <div class="panel-title">Tools</div>
   <div class="build-dock" id="build-tools"></div>
+  <div class="panel-foot" id="panel-foot"></div>
 </div>
 
 <div class="modal-backdrop" id="modal-cities">
@@ -432,9 +500,22 @@
         <div class="fleet-buy-card"><div style="font-weight:800;font-size:13px;color:#0284c7;">City Transit Coach Bus</div><div style="font-size:11px;color:#57606a;">Full-size bus with windshield, side windows, roof AC pods and lights.</div><button class="ui-btn primary" onclick="buyVehicle('bus')">Buy Bus ($18,000)</button></div>
         <div class="fleet-buy-card"><div style="font-weight:800;font-size:13px;color:#dc2626;">Emergency Ambulance</div><div style="font-size:11px;color:#57606a;">Cab + medical box, red cross and flashing red/blue lightbar.</div><button class="ui-btn primary" onclick="buyVehicle('ambulance')">Buy Ambulance ($24,000)</button></div>
         <div class="fleet-buy-card"><div style="font-weight:800;font-size:13px;color:#d97706;">Heavy Fire Rescue Truck</div><div style="font-size:11px;color:#57606a;">6-wheel engine, crew cab, roller shutters and roof ladder.</div><button class="ui-btn primary" onclick="buyVehicle('firetruck')">Buy Fire Truck ($32,000)</button></div>
+        <div class="fleet-buy-card"><div style="font-weight:800;font-size:13px;color:#1d4ed8;">Police Patrol Car</div><div style="font-size:11px;color:#57606a;">White cruiser with blue livery and lightbar. Answers crime calls and makes arrests.</div><button class="ui-btn primary" onclick="buyVehicle('police')">Buy Police Car ($22,000)</button></div>
       </div>
       <div style="font-size:12px;font-weight:800;">Active Fleet &amp; Drivers</div>
       <div class="fleet-list" id="fleet-list"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-services">
+  <div class="modal-box">
+    <div class="modal-head"><h3>City Services &amp; Safety</h3><button class="ui-btn" onclick="closeModal('modal-services')">Close</button></div>
+    <div class="modal-body">
+      <div class="svc-grid" id="svc-grid"></div>
+      <div class="svc-label">Live incidents</div>
+      <div class="svc-list" id="svc-incidents"></div>
+      <div class="svc-note" id="svc-note"></div>
     </div>
   </div>
 </div>
@@ -487,20 +568,42 @@ const IC={
  school:['#ca8a04','<path d="M2 20h20M4 20V11l8-5 8 5v9M10 20v-5h4v5M12 6V2h4v2h-4"/>'],
  tree:['#15803d','<circle cx="12" cy="9" r="5"/><path d="M12 14v7M9 18h6"/>'],
  park:['#0f766e','<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2.5"/><path d="M15 15h4M17 13v4M7 16h6"/>'],
- plaza:['#0284c7','<ellipse cx="12" cy="17" rx="8" ry="3"/><path d="M12 17V8M9 11c0-3 6-3 6 0M10 6l2-3 2 3"/>']
+ plaza:['#0284c7','<ellipse cx="12" cy="17" rx="8" ry="3"/><path d="M12 17V8M9 11c0-3 6-3 6 0M10 6l2-3 2 3"/>'],
+ police:['#1d4ed8','<path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6l7-3z"/><path d="M9 11l2 2 4-4"/>'],
+ court:['#7c2d12','<path d="M3 21h18M4 20V10l8-6 8 6v10M9 20v-6h6v6M12 4V2"/>'], busstand:['#2f6f9f','<rect x="3" y="5" width="18" height="11" rx="2"/><path d="M3 12h18M8 16v3M16 16v3"/>'],
+ railway:['#4a5568','<rect x="5" y="3" width="14" height="13" rx="2"/><path d="M5 9h14M9 16l-2 5M15 16l2 5M8 20h8"/>'],
+ metro:['#0f766e','<path d="M6 3h12v9a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4z"/><path d="M6 9h12M9 21l2-5M15 21l-2-5"/>'],
+ parking:['#1d4ed8','<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>'],
+ petrol:['#b45309','<rect x="4" y="4" width="8" height="16" rx="1"/><path d="M12 9h3a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V9l-2-3"/>'],
+ ev:['#15803d','<path d="M5 17V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v11"/><path d="M13 9l-3 5h3l-2 4M3 21h16"/>'],
+ busstop:['#0284c7','<rect x="4" y="4" width="16" height="10" rx="2"/><path d="M4 9h16M8 18v2M16 18v2"/>'],
+ stadium:['#b91c1c','<ellipse cx="12" cy="12" rx="9" ry="6"/><ellipse cx="12" cy="12" rx="4" ry="2.4"/>'],
+ library:['#7c3aed','<path d="M3 21h18M5 21V6l7-3 7 3v15"/><path d="M9 10h6M9 14h6"/>'],
+ museum:['#0e7490','<path d="M3 21h18M5 21V10l7-6 7 6v11"/><path d="M9 21v-6h6v6"/>'],
+ post:['#c2410c','<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 8l9 6 9-6"/>'],
+ bank:['#166534','<path d="M3 10l9-6 9 6"/><path d="M5 10v9M19 10v9M9 10v9M15 10v9M3 21h18"/>'],
+ temple:['#c2410c','<path d="M12 2l4 4H8z"/><path d="M12 6v4M6 21V13l6-3 6 3v8"/><path d="M10 21v-4h4v4"/>'],
+ mosque:['#0f766e','<path d="M4 21V11a8 8 0 0 1 16 0v10"/><path d="M4 21h16M12 3v2M9 21v-5a3 3 0 0 1 6 0v5"/>'],
+ church:['#7c3aed','<path d="M12 2v6M9 5h6M6 21V11l6-4 6 4v10"/><path d="M10 21v-5h4v5"/>'],
+ mall:['#b45309','<path d="M4 8h16l-1.5 12h-13z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>'],
+ cinema:['#1d4ed8','<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 8h2M11 8h2M15 8h2"/>'],
+ water:['#0284c7','<path d="M12 3c3 4 6 6 6 9a6 6 0 0 1-12 0c0-3 3-5 6-9z"/>'],
+ power:['#ca8a04','<path d="M13 2L4 14h6l-1 8 9-12h-6z"/>'],
+ waste:['#15803d','<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>'],
+ playground:['#0f766e','<path d="M4 4v16M20 4v16M4 6h16"/><path d="M9 6v6M15 6v6"/>']
 };
 const icon=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="${IC[k][0]}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[k][1]}</svg>`;
-const CATS=[['City','c'],['All',null],['Roads & River','r'],['Housing','h'],['Offices','o'],['Industry & Farm','i'],['Services','s'],['Parks','p']];
+const CATS=[['City','c'],['All',null],['Roads & River','r'],['Housing','h'],['Offices','o'],['Industry & Farm','i'],['Services','s'],['Transport','t'],['Civic & Leisure','l'],['Utilities','u'],['Parks','p']];
 const TOOLS=[
  {id:'wall',n:'Boundary',cost:40,k:'c'},{id:'gate',n:'Entry Gate',cost:600,k:'c'},{id:'board',n:'Name Board',cost:300,k:'c'},
  {id:'inspect',n:'Inspect',cost:0,k:'r',c:1},{id:'road',n:'Road',cost:50,k:'r'},{id:'river',n:'River Canal',cost:120,k:'r'},{id:'clear',n:'Bulldoze',cost:0,k:'r',c:1},
  {id:'house',n:'House',cost:800,k:'h'},{id:'villa',n:'Villa',cost:1800,k:'h'},{id:'apartment',n:'Apartment',cost:3200,k:'h'},
  {id:'office',n:'Office',cost:4500,k:'o'},{id:'tower',n:'Clock Tower',cost:6000,k:'o'},{id:'dome',n:'Dome Hall',cost:5000,k:'o'},
  {id:'factory',n:'Factory',cost:3500,k:'i'},{id:'turbine',n:'Wind Turbine',cost:2800,k:'i'},{id:'farm',n:'Farmland',cost:150,k:'i'},{id:'barn',n:'Red Barn',cost:900,k:'i'},{id:'silo',n:'Grain Silo',cost:700,k:'i'},
- {id:'hospital',n:'Hospital',cost:7000,k:'s'},{id:'fire',n:'Fire Station',cost:4500,k:'s'},{id:'school',n:'School',cost:3800,k:'s'},
+ {id:'hospital',n:'Hospital',cost:7000,k:'s'},{id:'fire',n:'Fire Station',cost:4500,k:'s'},{id:'school',n:'School',cost:3800,k:'s'},{id:'police',n:'Police Station',cost:6500,k:'s'},{id:'court',n:'Court House',cost:9000,k:'s'},{id:'busstand',n:'Bus Stand',cost:2600,k:'t'},{id:'busstop',n:'Bus Stop',cost:250,k:'t'},{id:'railway',n:'Railway Station',cost:12000,k:'t'},{id:'metro',n:'Metro Station',cost:9000,k:'t'},{id:'parking',n:'Parking Lot',cost:900,k:'t'},{id:'petrol',n:'Petrol Pump',cost:1400,k:'t'},{id:'ev',n:'EV Charging',cost:2200,k:'t'},{id:'stadium',n:'Stadium',cost:18000,k:'l'},{id:'mall',n:'Shopping Mall',cost:9500,k:'l'},{id:'cinema',n:'Cinema Hall',cost:6000,k:'l'},{id:'library',n:'Library',cost:3400,k:'l'},{id:'museum',n:'Museum',cost:6500,k:'l'},{id:'playground',n:'Playground',cost:700,k:'l'},{id:'post',n:'Post Office',cost:1800,k:'l'},{id:'bank',n:'Bank',cost:3000,k:'l'},{id:'temple',n:'Temple',cost:2400,k:'l'},{id:'mosque',n:'Mosque',cost:3200,k:'l'},{id:'church',n:'Church',cost:3200,k:'l'},{id:'water',n:'Water Tower',cost:2800,k:'u'},{id:'power',n:'Power Substation',cost:4200,k:'u'},{id:'waste',n:'Waste Plant',cost:3600,k:'u'},
  {id:'tree',n:'Trees',cost:30,k:'p'},{id:'park',n:'Park',cost:400,k:'p'},{id:'plaza',n:'Fountain Plaza',cost:600,k:'p'}
 ];
-const LABEL={house:'House',villa:'Villa',apartment:'Apartment block',office:'Limestone office',tower:'Clock tower',dome:'Dome hall',factory:'Factory',turbine:'Wind turbine',barn:'Red barn',silo:'Grain silo',hospital:'Hospital',fire:'Fire station',school:'School',park:'Park',plaza:'Fountain plaza',wall:'Boundary wall',gate:'Entry gate',board:'Name board'};
+const LABEL={house:'House',villa:'Villa',apartment:'Apartment block',office:'Limestone office',tower:'Clock tower',dome:'Dome hall',factory:'Factory',turbine:'Wind turbine',barn:'Red barn',silo:'Grain silo',hospital:'Hospital',fire:'Fire station',school:'School',park:'Park',plaza:'Fountain plaza',wall:'Boundary wall',gate:'Entry gate',board:'Name board',police:'Police station',court:'Court house',busstand:'Bus stand',busstop:'Bus stop',railway:'Railway station',metro:'Metro station',parking:'Parking lot',petrol:'Petrol pump',ev:'EV charging hub',stadium:'Stadium',mall:'Shopping mall',cinema:'Cinema hall',library:'Library',museum:'Museum',playground:'Playground',post:'Post office',bank:'Bank',temple:'Temple',mosque:'Mosque',church:'Church',water:'Water tower',power:'Power substation',waste:'Waste plant'};
 const POP={house:4,villa:7,apartment:20};
 const THEMES={
  temperate:{wall:[0xf0e2c3,0xe8d3a8,0xd9b98a,0xf3ead7,0xe6c4a0,0xcfd8c0,0xc9d6e0,0xf2cfa0],roof:[0xc4572f,0xb84a2a,0xa8452b,0xcf6a3a,0x8f3d2b],flat:false,grass:0x7f9f55,conf:.25,tree:[0x7fae45,0x8fc24f,0x6c9e3b,0x9cc858,0x5f9440,0xb8d060,0xe0a050,0xe88f8f],con:[0x3f7a4a,0x4a8a52,0x356b43]},
@@ -557,10 +660,46 @@ function roadLineG(gx,gz){
  if(Math.abs(gx-mx)<=K&&Math.abs(gz-mz)<=K)return mod(gx-mx,c.S)===0||mod(gz-mz,c.S)===0;
  return false;
 }
+// rotation that turns a building's front towards a road it actually touches (null if none)
+function roadTouchRot(gx,gz){
+ const rd=(x,z)=>{const t=tPeek(x,z);return t===1||t===5};
+ if(rd(gx,gz+1))return 0;
+ if(rd(gx,gz-1))return Math.PI;
+ if(rd(gx+1,gz))return Math.PI/2;
+ if(rd(gx-1,gz))return -Math.PI/2;
+ return null;
+}
 function faceRotG(gx,gz){
- if(roadLineG(gx,gz+1))return 0;if(roadLineG(gx,gz-1))return Math.PI;if(roadLineG(gx+1,gz))return Math.PI/2;if(roadLineG(gx-1,gz))return-Math.PI/2;
+ const r=roadTouchRot(gx,gz);
+ if(r!==null)return r;
+ // nothing touching: face the closest road within 3 tiles
+ const rd=(x,z)=>{const t=tPeek(x,z);return t===1||t===5};
+ for(let rad=2;rad<=3;rad++){
+  let best=null,bd=1e9;
+  for(let a=-rad;a<=rad;a++)for(let b=-rad;b<=rad;b++){
+   if(Math.max(Math.abs(a),Math.abs(b))!==rad)continue;
+   if(!rd(gx+a,gz+b))continue;
+   const d=a*a+b*b;if(d<bd){bd=d;best=[a,b]}
+  }
+  if(best){
+   const a=best[0],b=best[1];
+   if(Math.abs(a)>=Math.abs(b))return a>0?Math.PI/2:-Math.PI/2;
+   return b>0?0:Math.PI;
+  }
+ }
+ // inside a city: face the centre, so nothing looks randomly turned
+ const c=cityOfTile(gx,gz);
+ if(c){
+  const dx=c.mx-gx,dz=c.mz-gz;
+  if(dx===0&&dz===0)return 0;
+  if(Math.abs(dx)>=Math.abs(dz))return dx>0?Math.PI/2:-Math.PI/2;
+  return dz>0?0:Math.PI;
+ }
  return Math.floor(h2(gx,gz,55)*4)*Math.PI/2;
 }
+const FRONT={house:1,villa:1,apartment:1,office:1,tower:1,dome:1,factory:1,hospital:1,fire:1,school:1,
+ police:1,court:1,bank:1,post:1,library:1,museum:1,mall:1,cinema:1,temple:1,mosque:1,church:1,
+ busstand:1,railway:1,metro:1,petrol:1,ev:1,stadium:1,barn:1,playground:1,parking:1,water:1,power:1,waste:1};
 // the 13 starter buildings of a city (deterministic)
 const STK=new Map();
 function starterOf(city){
@@ -630,7 +769,9 @@ function baseCell(gx,gz,withTrees){
 const chunks=new Map(),edits=new Map();let chunkArr=[],instDirty=true;
 const chunkAtT=(gx,gz)=>chunks.get(ckey(Math.floor(gx/CH),Math.floor(gz/CH)));
 const loadedCell=(gx,gz)=>{const ch=chunkAtT(gx,gz);return ch?ch.cells[(gz-ch.cz*CH)*CH+(gx-ch.cx*CH)]:null};
-function applyEdit(c,e){c.t=e.t;c.crop=e.crop;c.b=e.kind?mkB(e.kind,c.gx,c.gz,e.rot,e.text):null;c.trees=(e.trees||[]).map(a=>({x:a[0],z:a[1],s:a[2],k:a[3],r:a[4],c:a[5]}));return c}
+function applyEdit(c,e){
+ c.t=e.t;c.crop=e.crop;c.b=e.kind?mkB(e.kind,c.gx,c.gz,e.rot,e.text):null;
+ if(c.b&&FRONT[c.b.kind]){const r=roadTouchRot(c.gx,c.gz);if(r!==null&&r!==c.b.rot)c.b.rot=r}c.trees=(e.trees||[]).map(a=>({x:a[0],z:a[1],s:a[2],k:a[3],r:a[4],c:a[5]}));return c}
 function peekCell(gx,gz){const c=loadedCell(gx,gz);if(c)return c;const e=edits.get(ekey(gx,gz)),b=baseCell(gx,gz,false);return e?applyEdit(b,e):b}
 function tPeek(gx,gz){const c=loadedCell(gx,gz);if(c)return c.t;const e=edits.get(ekey(gx,gz));return e?e.t:baseCell(gx,gz,false).t}
 const isRoadT=t=>t===1||t===5,isWaterT=t=>t===2||t===5;
@@ -639,7 +780,8 @@ function bridgeInfo(gx,gz){
  const W=rd(gx-1,gz)||rd(gx+1,gz),V=rd(gx,gz-1)||rd(gx,gz+1);
  let ax='x';if(V&&!W)ax='z';else if(V&&W)ax=(wt(gx-1,gz)&&wt(gx+1,gz))?'z':'x';
  const nn=ax==='x'?tPeek(gx-1,gz):tPeek(gx,gz-1),np=ax==='x'?tPeek(gx+1,gz):tPeek(gx,gz+1);
- return{axis:ax,rL:nn!==5,rR:np!==5};
+ const junction=(rd(gx,gz-1)||rd(gx,gz+1))&&(rd(gx-1,gz)||rd(gx+1,gz));
+ return{axis:ax,rL:nn!==5,rR:np!==5,junction};
 }
 function groundY(x,z){
  const gx=Math.floor(x/T),gz=Math.floor(z/T);if(tPeek(gx,gz)!==5)return 0;
@@ -913,6 +1055,276 @@ B.plaza=(mb,r,th,o)=>{
  mb.add('cyl',0,0,0,.95,.28,.95,0xa7a091);mb.add('cyl',0,.22,0,.78,.04,.78,0x5aa8d8,{noEdge:true});mb.add('cyl',0,0,0,.14,.85,.14,0xb9b2a2);
  mb.add('dome',0,.8,0,.4,.2,.4,0xa7a091);mb.add('cone',0,1,0,.08,.4,.08,0xa9d8f0,{noEdge:true});bench(mb,-1.1,1.1);bench(mb,1.1,-1.1);lamp(mb,1.25,1.2);lamp(mb,-1.25,-1.2);
 };
+B.police=(mb,r,th,o)=>{
+ o.wall=0xdfe4ea;
+ mb.add('box',0,0,-.15,2.5,1.35,1.65,0xdfe4ea);mb.add('box',0,0,-.15,2.56,.22,1.71,0x9aa3ac);
+ mb.add('box',0,1.35,-.15,2.58,.12,1.73,0x6c7681);
+ facade(mb,2.5,1.65,.35,2,.62,4,.36,.32,0x8fbfdc,true);
+ mb.add('box',0,0,1.0,.85,.62,.06,0x2f4258);
+ mb.add('box',0,1.55,-.15,1.15,.26,.06,0x1e3a8a);
+ mb.add('box',0,1.55,-.15,.16,.16,.02,0xffffff,{noEdge:true});mb.add('box',0,1.55,-.15,.06,.06,.02,0x1e3a8a,{noEdge:true});
+ mb.add('cyl',1.02,0,.55,.028,2.05,.028,0xcfd3d8,{noEdge:true});mb.add('plane',1.24,1.75,.55,.44,.27,1,0x1e3a8a);
+ mb.add('box',-.95,1.35,.55,.22,.3,.22,0x1e3a8a);
+ mb.add('box',0,0,1.55,2.2,.02,1.1,0x8e959c,{noEdge:true});
+ for(const x of[-.85,0,.85])mb.add('box',x,0,1.55,.55,.02,.02,0xf1f1ee,{noEdge:true});
+ mb.add('box',.95,0,1.4,.5,.45,.4,0x1f2937);mb.add('box',.95,.45,1.4,.42,.12,.32,0x1e3a8a,{noEdge:true});
+};
+B.court=(mb,r,th,o)=>{
+ o.wall=0xece5d4;
+ mb.add('box',0,0,0,2.8,.3,2.15,0xd8cfba);mb.add('box',0,.3,0,2.6,.3,1.95,0xe4dbc6);
+ mb.add('box',0,.6,-.12,2.25,1.55,1.55,0xece5d4);
+ mb.add('box',0,2.15,-.12,2.35,.14,1.65,0xd6cbb2);
+ mb.add('prism',0,2.29,-.12,2.4,.85,1.7,0xc9bda2);
+ for(let i=-2;i<=2;i++)mb.add('cyl',i*.42,.6,.62,.09,1.55,.09,0xf4efe2,{noEdge:true});
+ mb.add('box',0,2.15,.62,2.25,.14,.26,0xe8e0cc);
+ mb.add('box',0,.6,.66,1.5,.18,.22,0xd8cfba);
+ mb.win(-.85,1.35,-.9,.42,.55,1);mb.win(.85,1.35,-.9,.42,.55,1);
+ mb.add('box',0,.6,-.9,.5,.95,.06,0x6b5b45);
+ mb.add('cyl',0,2.3,-.12,.07,.55,.07,0xd8b24a,{noEdge:true});mb.add('box',0,2.85,-.12,.1,.16,.1,0xd8b24a,{noEdge:true});
+ mb.add('box',0,1.55,-.92,.9,.06,.02,0x8a7a5a,{noEdge:true});
+};
+B.busstand=(mb,r,th,o)=>{
+ o.wall=0xe8e2d4;
+ mb.add('box',0,0,0,2.7,.06,2.7,0x9aa0a6,{noEdge:true});
+ mb.add('box',0,.06,-.75,2.4,.85,1.0,0xe8e2d4);mb.add('box',0,.91,-.75,2.5,.14,1.1,0xb9573b);
+ facade(mb,2.4,1.0,.3,1,.5,3,.34,.3,0x86b4d2,true);
+ mb.add('box',0,.06,1.0,2.7,.08,1.1,0x7f868c,{noEdge:true});
+ for(const x of[-1.05,-.35,.35,1.05])mb.add('box',x,.07,1.42,.05,.02,.5,0xf1f1ee,{noEdge:true});
+ for(const x of[-.95,.95])mb.add('cyl',x,.06,.55,.04,1.55,.04,0xcfd3d8,{noEdge:true});
+ mb.add('box',0,1.61,.55,2.5,.09,1.5,0xf1f1ee);
+ mb.add('box',0,1.7,.55,2.3,.04,1.3,0x2f7fc1,{noEdge:true});
+ mb.add('box',-.55,.1,1.0,1.35,.5,1.85,0x2f7fc1);mb.add('box',-.55,.6,1.0,1.39,.06,1.89,0xe9e9e6);
+ for(const z of[.3,1.7])for(const x of[-1.16,.06])mb.add('cyl',x,.2,z,.15,.06,.15,0x25262a,{rz:Math.PI/2,noEdge:true});
+};
+B.busstop=(mb,r,th,o)=>{
+ o.wall=0xdfe3e8;
+ mb.add('box',0,0,0,1.7,.03,1.1,0x9aa0a6,{noEdge:true});
+ for(const x of[-.75,.75])mb.add('cyl',x,0,-.25,.04,.95,.04,0xcfd3d8,{noEdge:true});
+ mb.add('box',0,.95,-.25,1.7,.08,.8,0x2f6f9f);
+ mb.add('box',0,0,-.62,1.5,.4,.08,0xcfe0ea,{noEdge:true});
+ bench(mb,-.15,.15);
+ mb.add('cyl',.72,0,.35,.035,.9,.035,0xcfd3d8,{noEdge:true});mb.add('box',.72,1.0,.35,.34,.22,.04,0x2f6f9f);
+};
+B.railway=(mb,r,th,o)=>{
+ o.wall=0xe4d6b8;
+ mb.add('box',0,0,0,2.85,.05,2.85,0xb9b2a4,{noEdge:true});
+ mb.add('box',0,.05,-1.0,2.85,.4,1.0,0xd8d0c0);
+ for(const z of[-.62,-.22])mb.add('box',0,.07,z,2.85,.03,.06,0x8a8e95,{noEdge:true});
+ for(let x=-1.3;x<=1.3;x+=.32)mb.add('box',x,.06,-.42,.1,.04,.44,0x6b5a44,{noEdge:true});
+ mb.add('box',0,.4,1.0,2.4,1.15,.95,0xe4d6b8);mb.add('box',0,1.55,1.0,2.5,.12,1.05,0x8a5a46);
+ mb.add('prism',0,1.67,1.0,2.5,.5,1.05,0xb9573b);
+ facade(mb,2.4,.95,.6,1,.5,3,.34,.3,0x86b4d2,true);
+ mb.add('box',0,.4,1.44,.65,.7,.06,0x4a3a2a);
+ for(const x of[-1.2,0,1.2])mb.add('cyl',x,.45,-.95,.04,1.25,.04,0xcfd3d8,{noEdge:true});
+ mb.add('box',0,1.7,-.95,2.7,.08,1.25,0xf1f1ee);
+ mb.add('box',.1,.1,-.55,2.3,.5,.5,0x2f6f9f);mb.add('box',.1,.62,-.55,2.34,.05,.54,0xe9e9e6);
+ for(const x of[-.8,.9])mb.add('cyl',x,.12,-.55,.14,.05,.14,0x25262a,{rz:Math.PI/2,noEdge:true});
+};
+B.metro=(mb,r,th,o)=>{
+ o.wall=0xdfe3e8;
+ mb.add('box',0,0,0,2.5,.06,2.5,0x9aa0a6,{noEdge:true});
+ for(const x of[-.95,.95])for(const z of[-.95,.95])mb.add('box',x,0,z,.22,1.75,.22,0xc3c8ce);
+ mb.add('box',0,1.75,0,2.7,.2,2.7,0xdfe3e8);
+ mb.add('box',0,1.95,0,2.4,.55,2.2,0xf4f1ea);
+ mb.add('box',0,2.5,0,2.55,.12,2.35,0x2f6f9f);
+ mb.add('box',0,2.0,-1.12,2.3,.34,.05,0x2f6f9f,{noEdge:true});
+ for(let i=0;i<6;i++)mb.add('box',1.05-i*.2,i*.29,1.05,.55,.06,.55,0xc3c8ce,{noEdge:true});
+ mb.add('box',0,1.62,-1.42,2.9,.12,.3,0x8a8e95,{noEdge:true});
+ mb.add('box',.6,2.62,-.4,.5,.22,.06,0xf2c14e,{glass:true});
+};
+B.parking=(mb,r,th,o)=>{
+ o.wall=0x8f959b;
+ mb.add('box',0,0,0,2.75,.05,2.75,0x8f959b,{noEdge:true});
+ for(const z of[-.8,.0,.8])mb.add('box',0,.06,z,2.55,.02,.03,0xf1f1ee,{noEdge:true});
+ for(let x=-1.15;x<=1.2;x+=.55)mb.add('box',x,.06,0,.03,.02,2.55,0xf1f1ee,{noEdge:true});
+ const cols=[0xd9534f,0x3b82c4,0xf2c14e,0x5aa469];
+ for(let i=0;i<4;i++){const x=-1.05+(i%2)*1.15,z=i<2?-.4:.42;
+  mb.add('box',x,.08,z,.44,.16,.85,cols[i]);mb.add('box',x,.24,z-.06,.42,.15,.45,0x31485f);
+  for(const dz of[-.28,.28])for(const dx of[-.2,.2])mb.add('cyl',x+dx,.09,z+dz,.07,.03,.07,0x25262a,{rz:Math.PI/2,noEdge:true})}
+ mb.add('cyl',1.25,0,1.2,.04,.55,.04,0xcfd3d8,{noEdge:true});mb.add('box',1.1,.55,1.2,.55,.05,.05,0xd9534f,{noEdge:true});
+};
+B.petrol=(mb,r,th,o)=>{
+ o.wall=0xe8e2d4;
+ mb.add('box',0,0,0,2.6,.05,2.6,0x9aa0a6,{noEdge:true});
+ mb.add('box',0,0,-1.05,1.5,.6,.55,0xf1f1ee);mb.add('box',0,.6,-1.05,1.6,.08,.65,0xb9573b);
+ mb.add('box',0,.3,-.77,.5,.2,.03,0x2f7fc1,{glass:true});
+ for(const x of[-.65,.65]){
+  mb.add('cyl',x,0,.15,.05,1.45,.05,0xcfd3d8,{noEdge:true});
+  mb.add('box',x,.05,.15,.32,.85,.32,0xd9534f);mb.add('box',x,.5,.32,.22,.28,.05,0x2a2c30,{noEdge:true});
+ }
+ mb.add('box',0,1.45,.15,2.5,.12,1.7,0xf1f1ee);
+ mb.add('box',0,1.57,.15,2.2,.04,1.4,0x2f7fc1,{noEdge:true});
+ mb.add('box',0,.05,1.15,.4,.02,.6,0xf1f1ee,{noEdge:true});
+};
+B.ev=(mb,r,th,o)=>{
+ o.wall=0xdfe3e8;
+ mb.add('box',0,0,0,2.4,.05,2.4,0x9aa0a6,{noEdge:true});
+ for(const x of[-.8,.8]){
+  mb.add('box',x,0,0,.32,1.2,.32,0xf1f1ee);
+  mb.add('box',x,.85,.17,.22,.3,.04,0x22c55e,{glass:true});
+  mb.add('cyl',x,0,.4,.03,.55,.03,0x2a2c30,{noEdge:true});
+ }
+ mb.add('box',0,1.25,0,2.2,.1,1.1,0xf1f1ee);
+ mb.add('box',0,1.35,0,2.0,.04,.9,0x22c55e,{noEdge:true});
+ mb.add('box',0,.05,.95,.55,.02,.55,0x22c55e,{noEdge:true});
+};
+B.stadium=(mb,r,th,o)=>{
+ o.wall=0xd8d0c0;
+ mb.add('cyl',0,0,0,1.45,.55,1.45,0xd8d0c0);
+ mb.add('cyl',0,.55,0,1.2,.06,1.2,0x8fbf7a,{noEdge:true});
+ mb.add('cyl',0,.5,0,1.42,.06,1.42,0xb9573b,{noEdge:true});
+ mb.add('cyl',0,.02,0,1.18,.03,1.18,0x8fbf7a,{noEdge:true});
+ mb.add('box',0,.05,-1.05,.5,.02,.16,0xf1f1ee,{noEdge:true});mb.add('box',0,.05,1.05,.5,.02,.16,0xf1f1ee,{noEdge:true});
+ for(const a of[0,Math.PI/2,Math.PI,Math.PI*1.5]){
+  const x=Math.sin(a)*1.3,z=Math.cos(a)*1.3;
+  mb.add('cyl',x,.55,z,.04,.95,.04,0xcfd3d8,{noEdge:true});
+  mb.add('box',x,1.5,z,.32,.1,.08,0xfff2c0,{glass:true});
+ }
+};
+B.library=(mb,r,th,o)=>{
+ o.wall=0xe9e2cf;
+ mb.add('box',0,0,0,2.5,.3,2.0,0xd8cfba);
+ mb.add('box',0,.3,-.05,2.2,1.4,1.6,0xe9e2cf);
+ mb.add('box',0,1.7,-.05,2.3,.12,1.7,0xd6cbb2);
+ mb.add('prism',0,1.82,-.05,2.3,.6,1.7,0xc9bda2);
+ for(let i=-1;i<=1;i++)mb.add('cyl',i*.55,.3,.72,.07,1.4,.07,0xf4efe2,{noEdge:true});
+ mb.add('box',0,.3,.76,.85,.9,.06,0x6b5b45);
+ mb.win(-.75,1.0,-.86,.4,.5,1);mb.win(.75,1.0,-.86,.4,.5,1);
+ mb.add('box',0,1.9,-.05,.5,.2,.05,0xd8b24a,{noEdge:true});
+};
+B.museum=(mb,r,th,o)=>{
+ o.wall=0xece6d6;
+ mb.add('box',0,0,0,2.6,.25,2.2,0xd8cfba);
+ mb.add('box',0,.25,-.05,2.3,1.6,1.7,0xece6d6);
+ mb.add('box',0,1.85,-.05,2.4,.12,1.8,0xd6cbb2);
+ mb.add('dome',0,1.97,-.05,.9,.55,.9,0x3a8f86);
+ mb.add('cyl',0,2.45,-.05,.08,.35,.08,0xd8b24a,{noEdge:true});
+ for(const x of[-1.05,1.05])mb.add('box',x,.25,.72,.22,1.5,.22,0xf4efe2);
+ mb.add('box',0,.25,.78,1.0,.95,.06,0x4a3a2a);
+ mb.win(0,1.3,-.9,.6,.6,1);
+};
+B.playground=(mb,r,th,o)=>{
+ o.wall=0xd8c9a8;
+ mb.add('box',0,0,0,2.5,.03,2.5,0xd8c9a8,{noEdge:true});
+ for(const x of[-.7,-.25])mb.add('cyl',x,0,-.45,.05,.9,.05,0x8a5a36,{noEdge:true});
+ mb.add('box',-.47,.9,-.45,.55,.05,.05,0x8a5a36,{noEdge:true});
+ mb.add('box',-.6,.45,-.45,.02,.4,.02,0x8a5a36,{noEdge:true});mb.add('box',-.32,.45,-.45,.02,.4,.02,0x8a5a36,{noEdge:true});
+ mb.add('box',-.46,.05,-.45,.16,.03,.14,0x2f6f9f,{noEdge:true});
+ mb.add('box',.55,.35,.45,.28,.05,.9,0xd9534f,{rx:.42});
+ mb.add('cyl',.55,.7,.05,.03,.35,.03,0xcfd3d8,{noEdge:true});
+ mb.add('cyl',.95,0,-.55,.03,.65,.03,0x8a5a36,{noEdge:true});mb.add('torus',.95,.65,-.55,.22,.22,.22,0xd9534f,{ry:Math.PI/2,noEdge:true});
+};
+B.post=(mb,r,th,o)=>{
+ o.wall=0xdfe8e0;
+ mb.add('box',0,0,0,2.0,1.1,1.7,0xdfe8e0);
+ mb.add('box',0,1.1,0,2.1,.12,1.8,0x2f6f5f);
+ mb.add('box',0,.92,0,2.06,.16,.06,0xd9534f,{noEdge:true});
+ mb.add('box',0,0,.87,.6,.75,.06,0x34475a);
+ mb.win(-.68,.6,.86,.4,.35,0);mb.win(.68,.6,.86,.4,.35,0);
+ mb.add('box',0,1.22,.45,.55,.3,.08,0xf1f1ee);
+ mb.add('box',0,1.35,.5,.3,.1,.02,0x2f6f5f,{noEdge:true});
+};
+B.bank=(mb,r,th,o)=>{
+ o.wall=0xe6e2d8;
+ mb.add('box',0,0,0,2.4,.28,2.0,0xcfc8b8);
+ mb.add('box',0,.28,-.05,2.2,1.3,1.6,0xe6e2d8);
+ mb.add('box',0,1.58,-.05,2.3,.14,1.7,0xb9ad96);
+ for(let i=-1;i<=1;i++)mb.add('cyl',i*.6,.28,.7,.08,1.3,.08,0xf4efe2,{noEdge:true});
+ mb.add('box',0,.28,.74,.7,.85,.06,0x3a3f46);
+ mb.add('box',0,1.32,-.05,1.2,.22,.06,0x1f6f4a,{noEdge:true});
+ mb.add('cyl',0,1.72,-.05,.12,.5,.12,0xd8b24a,{noEdge:true});
+};
+B.temple=(mb,r,th,o)=>{
+ o.wall=0xf1e6d0;
+ mb.add('box',0,0,0,2.2,.3,2.0,0xd8cfba);
+ mb.add('box',0,.3,-.1,1.7,.9,1.5,0xf1e6d0);
+ mb.add('box',0,1.2,-.1,1.85,.12,1.6,0xd6cbb2);
+ for(let i=0;i<4;i++)mb.add('box',0,1.32+i*.28,-.1,1.15-i*.22,.28,1.05-i*.2,0xe8dcc0);
+ mb.add('dome',0,2.44,-.1,.34,.3,.34,0xd8b24a);
+ mb.add('cyl',0,2.72,-.1,.05,.35,.05,0xd8b24a,{noEdge:true});
+ mb.add('box',0,3.05,-.1,.22,.12,.02,0xd9534f,{noEdge:true});
+ mb.add('box',0,.3,.68,.6,.7,.06,0x8a5a36);
+ for(const x of[-.75,.75])mb.add('cyl',x,.3,.7,.06,.6,.06,0xf4efe2,{noEdge:true});
+ lamp(mb,-1.0,1.0);lamp(mb,1.0,1.0);
+};
+B.mosque=(mb,r,th,o)=>{
+ o.wall=0xf2efe6;
+ mb.add('box',0,0,0,2.2,.9,1.8,0xf2efe6);
+ mb.add('box',0,.9,0,2.3,.12,1.9,0xe3ddcd);
+ mb.add('dome',0,1.02,0,.85,.7,.85,0x2f8f7a);
+ mb.add('cyl',0,1.72,0,.06,.28,.06,0xd8b24a,{noEdge:true});
+ for(const x of[-1.02,1.02]){
+  mb.add('cyl',x,0,.7,.13,1.9,.13,0xf2efe6);
+  mb.add('dome',x,1.9,.7,.15,.18,.15,0x2f8f7a);
+ }
+ mb.add('box',0,0,1.0,.5,.7,.06,0x2f8f7a);
+ mb.add('box',0,.55,1.0,.3,.25,.04,0x2f8f7a,{noEdge:true});
+ mb.add('box',0,.9,1.0,.9,.16,.04,0xe3ddcd,{noEdge:true});
+};
+B.church=(mb,r,th,o)=>{
+ o.wall=0xf4f1e8;
+ mb.add('box',0,0,0,1.8,1.2,2.2,0xf4f1e8);
+ mb.add('prism',0,1.2,0,1.9,.7,2.3,0x8a4a3a);
+ mb.add('box',0,0,-1.15,.9,2.2,.9,0xf4f1e8);
+ mb.add('prism',0,2.2,-1.15,1.0,1.0,1.0,0x8a4a3a);
+ mb.add('box',0,3.2,-1.15,.06,.4,.06,0xd8b24a,{noEdge:true});
+ mb.add('box',0,3.38,-1.15,.26,.06,.06,0xd8b24a,{noEdge:true});
+ mb.win(0,.9,1.11,.4,.6,0);mb.win(-.91,.8,0,.3,.5,3);mb.win(.91,.8,0,.3,.5,2);
+ mb.add('box',0,0,1.13,.42,.8,.06,0x6b4a32);
+ mb.add('cyl',.62,2.1,-1.15,.28,.03,.28,0xf4f1e8,{rx:Math.PI/2});
+};
+B.mall=(mb,r,th,o)=>{
+ o.wall=0xe3e7ec;
+ mb.add('box',0,0,0,2.6,1.3,2.2,0xe3e7ec);
+ mb.add('box',0,1.3,0,2.7,.14,2.3,0xc9d0d8);
+ mb.add('box',0,1.44,-.25,1.7,.5,1.1,0xb9c2cc);
+ mb.add('box',0,1.94,-.25,1.8,.08,1.2,0x2f6f9f,{noEdge:true});
+ facade(mb,2.6,2.2,.3,1,.8,4,.4,.5,0x86b4d2,true);
+ mb.add('box',0,0,1.12,1.0,1.0,.06,0x34475a);
+ mb.add('box',0,1.05,1.16,.8,.18,.04,0xf2c14e,{glass:true});
+ mb.add('box',0,2.02,1.0,1.2,.28,.06,0xd9534f);
+ for(const x of[-1.0,1.0])mb.add('box',x,0,1.3,.5,.02,.5,0x8f959b,{noEdge:true});
+};
+B.cinema=(mb,r,th,o)=>{
+ o.wall=0x2f3440;
+ mb.add('box',0,0,0,2.4,1.2,2.0,0x2f3440);
+ mb.add('box',0,1.2,0,2.5,.12,2.1,0x1f242e);
+ mb.add('box',0,1.32,0,1.6,.5,1.4,0x3a4150);
+ mb.add('box',0,1.0,.98,1.4,.28,.06,0xd9534f,{glass:true});
+ mb.add('box',0,0,1.02,.8,.9,.06,0x11151c);
+ for(const x of[-1.0,1.0])mb.add('cyl',x,1.32,.6,.05,.9,.05,0xcfd3d8,{noEdge:true});
+ mb.add('box',0,1.36,1.02,.9,.2,.03,0xf2c14e,{glass:true});
+};
+B.water=(mb,r,th,o)=>{
+ o.wall=0xdfe3e8;
+ for(const x of[-.6,.6])for(const z of[-.6,.6])mb.add('cyl',x,0,z,.07,1.5,.07,0xb9c2cc,{noEdge:true});
+ mb.add('cyl',0,1.5,0,.9,.9,.9,0xdfe3e8);
+ mb.add('dome',0,2.4,0,.9,.35,.9,0xb9c2cc);
+ mb.add('cyl',0,0,0,.12,.5,.12,0x9aa3ac);
+ mb.add('box',0,0,0,.8,.12,.8,0x9aa3ac,{noEdge:true});
+ mb.add('cyl',0,2.75,0,.04,.3,.04,0x9aa3ac,{noEdge:true});
+};
+B.power=(mb,r,th,o)=>{
+ o.wall=0xb9c2cc;
+ mb.add('box',0,0,0,2.3,.1,1.9,0x8f959b,{noEdge:true});
+ for(const x of[-.7,.1,.9]){
+  mb.add('box',x,.1,-.3,.5,.8,.4,0x6c7681);
+  mb.add('cyl',x,.9,-.3,.1,.25,.1,0xd8b24a,{noEdge:true});
+ }
+ for(const x of[-1.05,1.05])for(const z of[-.85,.85])mb.add('cyl',x,.1,z,.05,1.1,.05,0xcfd3d8,{noEdge:true});
+ mb.add('box',0,1.2,0,2.4,.08,2.0,0xcfd3d8);
+ mb.add('box',0,0,.75,1.2,.5,.06,0x8f959b);
+ mb.add('box',0,1.28,0,.5,.3,.5,0x9aa3ac);
+};
+B.waste=(mb,r,th,o)=>{
+ o.wall=0x8a8f95;
+ mb.add('box',0,0,0,2.4,.2,2.0,0x8f959b,{noEdge:true});
+ mb.add('box',0,.2,-.2,1.8,.9,1.4,0x8a8f95);
+ mb.add('box',0,1.1,-.2,1.9,.1,1.5,0x6c7681);
+ mb.add('cyl',.65,.2,.6,.3,.8,.3,0x6c7681);mb.add('dome',.65,1.0,.6,.3,.2,.3,0x8a8f95);
+ for(const x of[-.55,-.05,.45])mb.add('box',x,.2,.72,.32,.26,.26,0x3f8f5f,{noEdge:true});
+ mb.add('box',0,1.2,-.2,.5,.35,.5,0x9aa3ac);
+};
 function bGeo(b,gx,gz){
  if(b.mb)return b.mb;const mb=new MB(),o={wall:b.wall};
  B[b.kind](mb,rng32(b.seed),THEMES[themeName(gx,gz)],o);b.wall=o.wall;b.mb=mb.freeze();return b.mb;
@@ -942,9 +1354,19 @@ const BOARD=(()=>{
  return mb.freeze();
 })();
 const BR={};
-function bridgeMB(rL,rR){
- const key=(rL?1:0)+(rR?2:0);if(BR[key])return BR[key];
+function bridgeMB(rL,rR,junction){
+ const key=(rL?1:0)+(rR?2:0)+(junction?4:0);if(BR[key])return BR[key];
  const mb=new MB(),S=0xd2c7a8,D=0x9a8f74,A=0x4a494c;
+ if(junction){
+  // a crossing: one clean deck, no side rails or arches poking into the other road
+  mb.add('box',0,.36,0,3,.24,3,S);
+  mb.add('box',0,.6,0,1.5,.03,3,A);
+  mb.add('box',0,.635,0,3,.03,1.5,A);
+  for(const sx of[-1,1])for(const sz of[-1,1])mb.add('box',sx*1.34,.36,sz*1.34,.3,.52,.3,S);
+  mb.add('box',0,.88,1.34,1.1,.06,.14,0xe0d6b8,{noEdge:true});
+  mb.add('box',0,.88,-1.34,1.1,.06,.14,0xe0d6b8,{noEdge:true});
+  return BR[key]=mb.freeze();
+ }
  mb.add('box',0,.36,0,1.5,.24,3,S);mb.add('box',0,.6,0,1.5,.03,2.1,A);
  for(const sg of[-1,1]){
   const ramp=sg<0?rL:rR;
@@ -1017,12 +1439,19 @@ function rebuildChunk(ch){
    const k=b.kind;
    if(k==='wall'){const arms=[];for(const [dx,dz] of DIRS){const nb=peekCell(gx+dx,gz+dz).b;if(nb&&(nb.kind==='wall'||nb.kind==='gate'))arms.push([dx,dz])}appendMB(d,wallMB(arms),px,0,pz,0)}
    else if(k==='gate')appendMB(d,GATE,px,0,pz,b.rot);
-   else if(k==='board'){appendMB(d,BOARD,px,0,pz,b.rot);const m=new THREE.Mesh(boardPlane,boardMat(b.text));m.position.set(px+Math.sin(b.rot)*.075,1.35,pz+Math.cos(b.rot)*.075);m.rotation.y=b.rot;extra.add(m)}
+   else if(k==='board'){
+    appendMB(d,BOARD,px,0,pz,b.rot);
+    const bm=boardMat(b.text);
+    const m=new THREE.Mesh(boardPlane,bm);
+    m.position.set(px+Math.sin(b.rot)*.075,1.35,pz+Math.cos(b.rot)*.075);m.rotation.y=b.rot;extra.add(m);
+    const m2=new THREE.Mesh(boardPlane,bm);   // readable from the other side too
+    m2.position.set(px-Math.sin(b.rot)*.075,1.35,pz-Math.cos(b.rot)*.075);m2.rotation.y=b.rot+Math.PI;extra.add(m2);
+   }
    else if(k==='turbine'){appendMB(d,bGeo(b,gx,gz),px,0,pz,0);const r=rotorProto.clone();r.position.set(px,5.8,pz+.45);extra.add(r);ch.rotors.push(r)}
    else appendMB(d,bGeo(b,gx,gz),px,0,pz,(k==='park'||k==='plaza')?0:b.rot);
   }
   if(c.t===3){const fm=fenceMB(gx,gz);if(fm)appendMB(d,fm,px,0,pz,0)}
-  else if(c.t===5){const bi=bridgeInfo(gx,gz);appendMB(d,bridgeMB(bi.rL,bi.rR),px,0,pz,bi.axis==='z'?-Math.PI/2:0)}
+  else if(c.t===5){const bi=bridgeInfo(gx,gz);appendMB(d,bridgeMB(bi.rL,bi.rR,bi.junction),px,0,pz,bi.axis==='z'?-Math.PI/2:0)}
  }
  if(ch.grp){scene.remove(ch.grp);disp(ch.grp)}if(ch.extra)scene.remove(ch.extra);
  ch.grp=d.build(true);ch.extra=extra;scene.add(ch.grp);scene.add(extra);ch.dirty=false;
@@ -1123,7 +1552,7 @@ function rebuildInst(){
 }
 
 // ===== VEHICLES =====
-const VT={car:{speed:5.2},bus:{speed:4.2},ambulance:{speed:6},firetruck:{speed:5},tractor:{speed:1.8},boat:{speed:1.6}},VS=.6;
+const VT={car:{speed:5.2},bus:{speed:4.2},ambulance:{speed:6},firetruck:{speed:5},police:{speed:6.6},tractor:{speed:1.8},boat:{speed:1.6}},VS=.6;
 let vehicles=[],peds=[],smoke=[],pops=[],vid=0,nameN={};
 function wheel(mb,x,r,z,wd){mb.add('cyl',x+wd*.52,r,z,r,wd*1.04,r,0x25262a,{rz:Math.PI/2,noEdge:true});mb.add('cyl',x+wd*.54,r,z,r*.5,wd*1.08,r*.5,0xb9bcc2,{rz:Math.PI/2,noEdge:true})}
 function lightbar(g,y,z,wd){const bg=new THREE.BoxGeometry(wd/2-.02,.12,.22);const a=new THREE.Mesh(bg,matRed),b=new THREE.Mesh(bg,matBlue);a.position.set(-wd/4,y,z);b.position.set(wd/4,y,z);g.add(a,b)}
@@ -1157,6 +1586,15 @@ function vehicleMesh(type,col){
    mb.add('box',s*.28,1.7,-.9,.06,.08,3.4,0xc9ccd0,{noEdge:true})}
   for(let z=-2.4;z<=.6;z+=.4)mb.add('box',0,1.7,z,.6,.05,.05,0xc9ccd0,{noEdge:true});
   mb.add('box',0,1.95,1.6,1.2,.07,.28,0x333333);g=mb.build();lightbar(g,2.06,1.6,1.2);
+ }else if(type==='police'){
+  const wh=0xf7f8fa;
+  mb.add('box',0,.2,0,1,.34,2.1,wh);mb.add('box',0,.54,-.1,.94,.3,1.15,W);mb.add('box',0,.84,-.1,.98,.06,1.25,0x1e3a8a);
+  mb.add('box',0,.14,1.06,.98,.14,.06,0x2a2c30);mb.add('box',0,.14,-1.06,.98,.14,.06,0x2a2c30);
+  mb.add('box',0,.44,.05,1.02,.2,1.5,0x1e3a8a,{noEdge:true});
+  mb.add('box',0,.62,.62,.9,.05,.5,0x1e3a8a);
+  for(const s of[-1,1]){mb.add('box',s*.34,.3,1.07,.22,.1,.04,0xfff2c0,{glass:true});mb.add('box',s*.34,.3,-1.07,.22,.1,.04,0xd83030,{glass:true});wheel(mb,s*.5,.22,.68,.18);wheel(mb,s*.5,.22,-.68,.18)}
+  mb.add('box',0,.86,-.1,.7,.05,.5,0xffffff,{noEdge:true});
+  g=mb.build();lightbar(g,.9,-.15,.9);
  }else if(type==='boat'){
   mb.add('box',0,.12,0,1.1,.4,2.6,0x8a3a2c);mb.add('box',0,.52,0,1.14,.08,2.64,0xf1ece0,{noEdge:true});
   mb.add('box',0,.6,-.3,.8,.6,1,0xf4f4f0);mb.add('box',0,.8,-.3,.82,.22,1.02,W,{noEdge:true});mb.add('box',0,1.2,-.3,.9,.06,1.1,0xb23a2b);
@@ -1173,6 +1611,17 @@ const cc=(gx,gz)=>({x:(gx+.5)*T,z:(gz+.5)*T});
 function pickNext(v){
  const opts=[];
  for(const [dx,dz] of DIRS){const nx=v.cx+dx,nz=v.cz+dz;if(passable(v.type,nx,nz)&&!(nx===v.px&&nz===v.pz))opts.push({nx,nz,w:(v.cx-v.px===dx&&v.cz-v.pz===dz)?3:1})}
+ if(v.path&&v.path.length&&(Math.abs(v.path[0].gx-v.cx)>1||Math.abs(v.path[0].gz-v.cz)>1))v.path=null;
+ if(v.path&&v.path.length){
+  while(v.path.length&&v.path[0].gx===v.cx&&v.path[0].gz===v.cz)v.path.shift();
+  const nx2=v.path[0];
+  if(nx2){for(const o of opts){if(o.nx===nx2.gx&&o.nz===nx2.gz){v.nx=o.nx;v.nz=o.nz;return true}}}
+ }
+ if(v.dest&&opts.length){
+  let best=null,bd=1e9;
+  for(const o of opts){const dd=Math.hypot((o.nx+.5)*T-v.dest.x,(o.nz+.5)*T-v.dest.z);if(dd<bd){bd=dd;best=o}}
+  if(best&&Math.random()<.86){v.nx=best.nx;v.nz=best.nz;return true}
+ }
  if(!opts.length){for(const [dx,dz] of DIRS){const nx=v.cx+dx,nz=v.cz+dz;if(passable(v.type,nx,nz))opts.push({nx,nz,w:1})}}
  if(!opts.length){v.nx=v.cx;v.nz=v.cz;return false}
  let t=0;for(const o of opts)t+=o.w;let u=Math.random()*t,pick=opts[0];for(const o of opts){u-=o.w;if(u<=0){pick=o;break}}
@@ -1213,6 +1662,7 @@ function stepV(v,dt){
  if(!passable(v.type,v.cx,v.cz)){if(!snapToPassable(v))return}
  let target=def.speed;
  for(const o of vehicles){if(o===v||!o.mesh.visible)continue;const dx=o.x-v.x,dz=o.z-v.z;if(dx*dx+dz*dz<6){const fx=Math.sin(v.h),fz=Math.cos(v.h),dot=dx*fx+dz*fz,lat=Math.abs(dx*fz-dz*fx);if(dot>.2&&dot<2.5&&lat<.9)target=0}}
+ if(!v.urgent&&v.t<.72&&sigRed(v)){target=0;v.t=Math.min(v.t,.70)}
  if(target===0){v.wait+=dt;if(v.wait>1.4){target=def.speed*.6;if(v.wait>2.6)v.wait=0}}else v.wait=0;
  v.speed+=(target-v.speed)*Math.min(1,dt*4);v.t+=v.speed*dt/T;
  while(v.t>=1){v.t-=1;v.px=v.cx;v.pz=v.cz;v.cx=v.nx;v.cz=v.nz;if(!pickNext(v)){v.t=0;v.speed=0;break}}
@@ -1237,7 +1687,7 @@ function stepPed(p,dt){
  const L=1.2*p.side;p.x=lerp(a.x,b.x,p.t)-Math.cos(p.h)*L;p.z=lerp(a.z,b.z,p.t)+Math.sin(p.h)*L;
 }
 let pendingFleet=[],fleetBadge=0;
-const FLEET_LABEL={bus:'City Coach Bus',ambulance:'Emergency Ambulance',firetruck:'Fire Rescue Truck'},FLEET_COL={bus:0x2f7fc1,ambulance:0xffffff,firetruck:0xc8312a};
+const FLEET_LABEL={bus:'City Coach Bus',ambulance:'Emergency Ambulance',firetruck:'Fire Rescue Truck',police:'Police Patrol Car'},FLEET_COL={bus:0x2f7fc1,ambulance:0xffffff,firetruck:0xc8312a,police:0x1e3a8a};
 function addFleet(type){
  const c=randomCellNear(c=>c.t===1,90);if(!c)return null;
  const v=newVehicleAt(type,FLEET_COL[type],true,c.gx,c.gz);v.label=FLEET_LABEL[type]+' #'+(nameN[type]=(nameN[type]||0)+1);return v;
@@ -1250,11 +1700,402 @@ function syncTraffic(){
  while(pendingFleet.length){const v=addFleet(pendingFleet[0]);if(!v)break;pendingFleet.shift();renderFleet()}
  const cnt=t=>vehicles.filter(v=>v.type===t&&!v.fleet).length;
  const spawn=(type,col,pred,target)=>{let n=cnt(type),tries=0;while(n<target&&tries++<4){const c=randomCellNear(pred,130);if(!c)continue;newVehicleAt(type,col,false,c.gx,c.gz);n++}};
- spawn('car',rp(Math.random,CARCOL),c=>c.t===1,Math.min(24,Math.floor(stats.road/14)));
+ spawn('car',rp(Math.random,CARCOL),c=>c.t===1,Math.max(4,Math.round(Math.min(24,Math.floor(stats.road/14))*(1-Math.min(.45,transitN*.035)))));
  spawn('tractor',0x3e8a3f,c=>c.t===3,Math.min(3,Math.floor(stats.farm/8)));
  spawn('boat',0,c=>c.t===2,Math.min(4,Math.floor(stats.water/40)));
  let tries=0;while(peds.length<Math.min(60,Math.floor(stats.road/8))&&tries++<6)spawnPed();
 }
+
+
+// ===== CIVIC SERVICES: TRAFFIC SIGNALS, POLICE, INCIDENTS, COURTS =====
+const CIV={police:0,court:0,hospital:0,fire:0,factory:0,policeCell:null,courtCell:null,hospitalCell:null,fireCell:null};
+let transitN=0,parkingN=0,utilN=0,leisureN=0,stadiumN=0,devBonus=1,matchT=80;
+let crimeIdx=14,civ={arrests:0,convictions:0,fines:0,crimes:0,fires:0,accidents:0},cases=[],incidents=[],incSeq=0,incTimer=7,lastVerdictToast=0,lastCivScan=0,lastSvcPaint=0;
+const svcModal=document.getElementById('modal-services');
+
+/* ---------- traffic signals ---------- */
+function isSigCell(gx,gz){
+ const c=loadedCell(gx,gz);
+ if(!c||!isRoadT(c.t))return false;
+ let n=0,ns=0,ew=0;
+ for(const d of DIRS){const q=loadedCell(gx+d[0],gz+d[1]);if(q&&isRoadT(q.t)){n++;if(d[0])ew++;else ns++}}
+ return n>=3||(n===2&&ns===1&&ew===1);
+}
+const SIG_CYC=16;
+function sigPhaseAt(gx,gz){
+ const p=(performance.now()/1000+h2(gx,gz,91)*SIG_CYC)%SIG_CYC;
+ return {ns:p<6.4?'g':p<7.4?'y':'r',ew:(p>=8&&p<14.4)?'g':(p>=14.4&&p<15.4)?'y':'r'};
+}
+function sigRed(v){
+ const nx=v.nx,nz=v.nz;
+ if(nx===v.cx&&nz===v.cz)return false;
+ if(!isSigCell(nx,nz))return false;
+ return sigPhaseAt(nx,nz)[(nz!==v.cz)?'ns':'ew']!=='g';
+}
+function instBasicMat(){
+ const m=new THREE.MeshBasicMaterial({color:0xffffff});
+ m.onBeforeCompile=sh=>{
+  sh.vertexShader='attribute vec3 iCol;varying vec3 vIC;\n'+sh.vertexShader.replace('#include <begin_vertex>','vec3 transformed=vec3(position);vIC=iCol;');
+  sh.fragmentShader='varying vec3 vIC;\n'+sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=vIC;');
+ };
+ m.customProgramCacheKey=()=>'icb';return m;
+}
+const matSigPole=new THREE.MeshStandardMaterial({color:lin(0x2b3034),roughness:.75});
+const matSigHead=new THREE.MeshStandardMaterial({color:lin(0x191d20),roughness:.85});
+const gSigPole=new THREE.CylinderGeometry(.045,.055,1.3,6).translate(0,.65,0);
+const gSigHead=new THREE.BoxGeometry(.18,.46,.18).translate(0,.23,0);
+const gSigLamp=new THREE.BoxGeometry(.1,.1,.03);
+const iSigPole=inst(gSigPole,matSigPole,520,false,false),iSigHead=inst(gSigHead,matSigHead,520,false,false),iSigLamp=inst(gSigLamp,instBasicMat(),1040,false,true);
+const SIGCOL={g:lin(0x2ee06a),y:lin(0xffc02e),r:lin(0xf23b3b)};
+let sigList=[],sigBuiltAt=-1e9,sigDirty=true;
+const sigAt={x:1e9,z:1e9};
+function rebuildSignals(){
+ const f=focus(),R=84,lim=Math.ceil(R/T),cgx=Math.floor(f.x/T),cgz=Math.floor(f.z/T);
+ let n=0,l=0;sigList=[];
+ for(let dz=-lim;dz<=lim;dz++)for(let dx=-lim;dx<=lim;dx++){
+  if(n>=240)break;
+  const gx=cgx+dx,gz=cgz+dz;if(!isSigCell(gx,gz))continue;
+  const p=cc(gx,gz);if(Math.hypot(p.x-f.x,p.z-f.z)>R)continue;
+  const y=groundY(p.x,p.z);
+  for(const s of [-1,1]){
+   const ox=p.x+s*T*.40,oz=p.z+s*T*.40;
+   put(iSigPole,n,ox,y,oz,1,1,1,0);
+   put(iSigHead,n,ox,y+1.28,oz,1,1,1,0);
+   put(iSigLamp,l,ox,y+1.52,oz+.1,1,1,1,0);
+   put(iSigLamp,l+1,ox+.1,y+1.52,oz,1,1,1,Math.PI/2);
+   n++;l+=2;
+  }
+  sigList.push({gx,gz,base:l-4});
+ }
+ iSigPole.count=iSigHead.count=n;iSigLamp.count=l;
+ iSigPole.instanceMatrix.needsUpdate=true;iSigHead.instanceMatrix.needsUpdate=true;iSigLamp.instanceMatrix.needsUpdate=true;
+ sigDirty=false;sigBuiltAt=performance.now();
+}
+function updateSignalColors(){
+ if(!sigList.length)return;
+ for(const s of sigList){
+  const ph=sigPhaseAt(s.gx,s.gz);
+  setCol(iSigLamp,s.base,SIGCOL[ph.ns]);setCol(iSigLamp,s.base+1,SIGCOL[ph.ew]);
+  setCol(iSigLamp,s.base+2,SIGCOL[ph.ns]);setCol(iSigLamp,s.base+3,SIGCOL[ph.ew]);
+ }
+ iSigLamp.geometry.attributes.iCol.needsUpdate=true;
+}
+
+/* ---------- stations ---------- */
+function scanCivic(){
+ const f=focus();let pol=null,cou=null,hos=null,fir=null,fac=0,tr=0,pk=0,ut=0,le=0,st=0;
+ const nearer=(cur,c)=>!cur||Math.hypot(c.b.x-f.x,c.b.z-f.z)<Math.hypot(cur.b.x-f.x,cur.b.z-f.z)?c:cur;
+ for(const ch of chunkArr)for(const c of ch.cells){
+  const b=c.b;if(!b)continue;
+  if(b.kind==='police')pol=nearer(pol,c);
+  else if(b.kind==='court')cou=nearer(cou,c);
+  else if(b.kind==='hospital')hos=nearer(hos,c);
+  else if(b.kind==='fire')fir=nearer(fir,c);
+  else if(b.kind==='factory'||b.kind==='silo')fac++;
+  else if(b.kind==='busstand'||b.kind==='railway'||b.kind==='metro'||b.kind==='busstop'){
+   tr++;
+   if(b.kind==='railway'||b.kind==='metro')tr++;
+  }
+  else if(b.kind==='parking')pk++;
+  else if(b.kind==='water'||b.kind==='power'||b.kind==='waste')ut++;
+  else if(b.kind==='stadium'){st++;le++;}
+  else if(b.kind==='mall'||b.kind==='cinema'){le+=2;}
+  else if(b.kind==='library'||b.kind==='museum'||b.kind==='post'||b.kind==='bank'||b.kind==='playground'||
+          b.kind==='temple'||b.kind==='mosque'||b.kind==='church'||b.kind==='park'||b.kind==='plaza')le++;
+ }
+ CIV.police=pol?1:0;CIV.court=cou?1:0;CIV.hospital=hos?1:0;CIV.fire=fir?1:0;CIV.factory=fac;
+ transitN=tr;parkingN=pk;utilN=ut;leisureN=le;stadiumN=st;
+ devBonus=1+Math.min(.30,tr*.02)+Math.min(.25,ut*.06)+Math.min(.22,le*.012)+Math.min(.10,pk*.02);
+ CIV.policeCell=pol;CIV.courtCell=cou;CIV.hospitalCell=hos;CIV.fireCell=fir;
+ crimeIdx=clamp(12+pop/60-(pol?8:0)-(cou?3:0),2,60);
+}
+
+/* ---------- incidents ---------- */
+const INC_META={
+ crime:{col:0xef4444,label:'Crime',unit:'police',station:'police',need:'police station'},
+ fire:{col:0xf97316,label:'Fire',unit:'firetruck',station:'fire',need:'fire station'},
+ accident:{col:0x3b82f6,label:'Accident',unit:'ambulance',station:'hospital',need:'hospital'}
+};
+const gBeam=new THREE.CylinderGeometry(.34,.5,6,10,1,true).translate(0,3,0);
+const gRing=new THREE.RingGeometry(.55,.8,18).rotateX(-Math.PI/2);
+function mkMarker(inc){
+ const g=new THREE.Group();
+ const b=new THREE.Mesh(gBeam,new THREE.MeshBasicMaterial({color:inc.col,transparent:true,opacity:.26,depthWrite:false,side:THREE.DoubleSide}));
+ const r=new THREE.Mesh(gRing,new THREE.MeshBasicMaterial({color:inc.col,transparent:true,opacity:.72,depthWrite:false,side:THREE.DoubleSide}));
+ r.position.y=.05;g.add(b,r);g.position.set(inc.x,groundY(inc.x,inc.z),inc.z);
+ scene.add(g);inc.mark=g;inc.ring=r;inc.beam=b;
+}
+function dropMarker(inc){if(inc.mark){scene.remove(inc.mark);disp(inc.mark);inc.mark=null;inc.ring=null;inc.beam=null}}
+const INC_BLDG=['house','villa','apartment','office','factory','barn','silo','school','hospital'];
+function incidentSpot(type){
+ const pred=type==='accident'?(c=>c.t===1):(c=>!!c.b&&INC_BLDG.indexOf(c.b.kind)>=0);
+ for(let k=0;k<6;k++){const c=randomCellNear(pred,120);if(c)return c}
+ const f=focus();let best=null,bd=1e9;
+ for(const ch of chunkArr)for(const c of ch.cells){
+  if(!pred(c))continue;
+  const dd=Math.hypot((c.gx+.5)*T-f.x,(c.gz+.5)*T-f.z);
+  if(dd<125&&dd<bd){bd=dd;best=c}
+ }
+ return best;
+}
+function spawnIncident(type){
+ const c=incidentSpot(type);if(!c)return null;
+ const p=cc(c.gx,c.gz);
+ const inc={id:++incSeq,type,col:INC_META[type].col,gx:c.gx,gz:c.gz,x:p.x,z:p.z,t0:performance.now(),state:'open',unit:null,mark:null,ring:null,beam:null,arrived:0};
+ mkMarker(inc);incidents.push(inc);
+ if(type==='crime')civ.crimes++;else if(type==='fire')civ.fires++;else civ.accidents++;
+ const cty=cityOfTile(c.gx,c.gz),meta=INC_META[type];
+ toast(meta.label+' reported '+(cty?'in '+cty.name:'nearby')+' — '+(CIV[meta.station]?'unit dispatched':'no '+meta.need+' yet'));
+ return inc;
+}
+function findPath(sx,sz,tx,tz,type,maxN){
+ const key=(x,z)=>(x+8192)*16384+(z+8192);
+ const start=key(sx,sz),goal=key(tx,tz);
+ if(start===goal)return [];
+ const prev=new Map(),seen=new Set([start]),memo=new Map();
+ const q=[[sx,sz]];let head=0,n=0;
+ while(head<q.length&&n<maxN){
+  const cur=q[head++];n++;
+  for(const dd of DIRS){
+   const nx=cur[0]+dd[0],nz=cur[1]+dd[1],k=key(nx,nz);
+   if(seen.has(k))continue;
+   if(Math.abs(nx-sx)>90||Math.abs(nz-sz)>90)continue;
+   let ok=memo.get(k);
+   if(ok===undefined){ok=passable(type,nx,nz);memo.set(k,ok)}
+   if(!ok)continue;
+   seen.add(k);prev.set(k,cur);
+   if(k===goal){
+    const path=[];let node=cur;
+    while(node){path.push({gx:node[0],gz:node[1]});node=prev.get(key(node[0],node[1]))}
+    path.reverse();path.shift();
+    return path;
+   }
+   q.push([nx,nz]);
+  }
+ }
+ return null;
+}
+function roadNear(gx,gz,rad){
+ for(let r=1;r<=rad;r++)for(let a=-r;a<=r;a++)for(let b=-r;b<=r;b++){
+  if(Math.max(Math.abs(a),Math.abs(b))!==r)continue;
+  if(tPeek(gx+a,gz+b)===1)return {gx:gx+a,gz:gz+b};
+ }
+ return null;
+}
+function freeUnit(type){
+ for(const v of vehicles){
+  if(v.type!==type||!v.fleet)continue;
+  if(v.mode==='manual'||v.mode==='parked')continue;
+  if(v.dest)continue;
+  return v;
+ }
+ return null;
+}
+function makeUnit(type,cell){
+ const spot=roadNear(cell.gx,cell.gz,12);if(!spot)return null;
+ const v=newVehicleAt(type,FLEET_COL[type],true,spot.gx,spot.gz);
+ v.label=(FLEET_LABEL[type]||'Service unit')+' #'+(nameN[type]=(nameN[type]||0)+1);
+ v.temp=true;v.urgent=false;v.idleAt=performance.now();
+ return v;
+}
+function resyncPath(v){
+ if(!v.path||!v.path.length)return;
+ while(v.path.length&&(Math.abs(v.path[0].gx-v.cx)>1||Math.abs(v.path[0].gz-v.cz)>1))v.path.shift();
+ if(v.path.length&&passable(v.type,v.path[0].gx,v.path[0].gz)){
+  v.px=-9999;v.pz=-9999;v.nx=v.path[0].gx;v.nz=v.path[0].gz;
+ }else v.path=null;
+}
+function assignUnit(u,inc,route){
+ u.dest={x:inc.x,z:inc.z};u.urgent=true;u.incident=inc.id;u.idleAt=0;
+ u.path=route&&route.length?route.slice():null;
+ resyncPath(u);
+ inc.unit=u;inc.state='dispatched';inc.dispatchedAt=performance.now();
+ return true;
+}
+function routeFor(u,inc){
+ const stop=roadNear(inc.gx,inc.gz,12)||{gx:inc.gx,gz:inc.gz};
+ return findPath(u.cx,u.cz,stop.gx,stop.gz,u.type,14000);
+}
+function spawnUnitNear(inc,type){
+ const spot=roadNear(inc.gx,inc.gz,6);
+ if(!spot)return null;
+ const v=newVehicleAt(type,FLEET_COL[type],true,spot.gx,spot.gz);
+ v.label=(FLEET_LABEL[type]||'Service unit')+' #'+(nameN[type]=(nameN[type]||0)+1);
+ v.temp=true;v.urgent=true;v.idleAt=0;
+ return v;
+}
+function dispatchFor(inc){
+ const meta=INC_META[inc.type];
+ // a unit already on patrol nearby can take the call
+ const u=freeUnit(meta.unit);
+ if(u&&Math.hypot(u.x-inc.x,u.z-inc.z)<50){
+  const r=routeFor(u,inc);
+  if(r)return assignUnit(u,inc,r);
+ }
+ // otherwise the nearest station of that service rolls a unit
+ if(!CIV[meta.station])return false;
+ const cell=CIV[meta.station+'Cell'];
+ if(cell){
+  const nu=makeUnit(meta.unit,cell);
+  if(nu){
+   const r2=routeFor(nu,inc);
+   if(r2)return assignUnit(nu,inc,r2);
+   removeVehicle(nu);
+  }
+ }
+ const w=spawnUnitNear(inc,meta.unit);
+ if(w){
+  const r3=routeFor(w,inc);
+  if(r3&&r3.length)return assignUnit(w,inc,r3);
+  // already at the scene: the crew walks the last few metres
+  if(Math.hypot(w.x-inc.x,w.z-inc.z)<14){w.dest=null;w.idleAt=performance.now();inc.unit=w;inc.state='onscene';inc.arrived=performance.now();return true}
+  return assignUnit(w,inc,[]);
+ }
+ // nothing can reach the scene at all: officers respond on foot
+ if(!roadNear(inc.gx,inc.gz,20)){inc.state='onscene';inc.arrived=performance.now();return true}
+ return false;
+}
+function resolveIncident(inc){
+ dropMarker(inc);
+ const u=inc.unit;
+ if(u){u.dest=null;u.path=null;u.urgent=false;u.incident=null;u.idleAt=performance.now()}
+ const cty=cityOfTile(inc.gx,inc.gz),name=cty?cty.name:'the city';
+ if(inc.type==='crime'){
+  civ.arrests++;
+  if(CIV.court){cases.push({fine:900+Math.floor(Math.random()*1600),t:8+Math.random()*6,name});toast('Arrest made in '+name+' — case sent to court');}
+  else{crimeIdx=clamp(crimeIdx+2.5,2,60);toast('Suspect arrested but released — build a court house to prosecute');}
+ }else if(inc.type==='fire'){cash=Math.max(0,cash-250);toast('Fire put out in '+name+' — repairs $250');}
+ else{cash=Math.max(0,cash-180);toast('Accident cleared in '+name+' — $180');}
+ updateHud();
+}
+function failIncident(inc){
+ dropMarker(inc);
+ const cty=cityOfTile(inc.gx,inc.gz),name=cty?cty.name:'the city';
+ if(inc.type==='crime'){crimeIdx=clamp(crimeIdx+4,2,60);cash=Math.max(0,cash-700);toast('Crime unsolved in '+name+' — build a police station');}
+ else if(inc.type==='fire'){cash=Math.max(0,cash-1400);toast('Fire burned out in '+name+' — $1,400 damage');}
+ else{cash=Math.max(0,cash-500);toast('Accident left unattended in '+name+' — $500');}
+ updateHud();
+}
+
+/* ---------- HUD + services panel ---------- */
+function updateCivicHud(){
+ const el=$('hud-crime');
+ if(el){
+  el.textContent=Math.round(crimeIdx);
+  el.style.color=crimeIdx<15?'#15803d':crimeIdx<30?'#b45309':'#b91c1c';
+ }
+ const badge=$('svc-badge');if(badge)badge.textContent=incidents.length;
+}
+function renderServices(){
+ const g=$('svc-grid');if(!g)return;
+ const card=(k,v,sub)=>'<div class="svc-card"><div class="svc-k">'+k+'</div><div class="svc-v">'+v+'</div>'+(sub?'<div class="svc-sub">'+sub+'</div>':'')+'</div>';
+ g.innerHTML=[
+  card('Crime index',Math.round(crimeIdx),crimeIdx<15?'safe':crimeIdx<30?'watch':'high'),
+  card('Open incidents',incidents.length,cases.length?cases.length+' in court':''),
+  card('Police stations',CIV.police,CIV.police?'on duty':'build one'),
+  card('Court house',CIV.court,CIV.court?'hearing cases':'build one'),
+  card('Arrests',civ.arrests,''),
+  card('Convictions',civ.convictions,''),
+  card('Fines collected','$'+civ.fines.toLocaleString('en-US'),''),
+  card('Traffic signals',sigList.length,'in view'),
+  card('Public transport',transitN,transitN?'fewer cars on the road':'build a bus stand'),
+  card('Utilities',utilN,utilN?'water / power / waste':'none yet'),
+  card('Leisure',leisureN,leisureN?'':'parks, malls, stadium'),
+  card('Parking',parkingN,parkingN?'lots':'no parking'),
+  card('City bonus','+'+(Math.round((devBonus-1)*1000)/10)+'%','on all income')
+ ].join('');
+ const list=$('svc-incidents');
+ if(!incidents.length){
+  list.innerHTML='<div class="svc-empty">All quiet right now. Crimes, fires and road accidents appear here the moment they happen.</div>';
+ }else{
+  list.innerHTML=incidents.map(inc=>{
+   const meta=INC_META[inc.type],cty=cityOfTile(inc.gx,inc.gz);
+   const st=inc.state==='open'?'waiting for a unit':inc.state==='dispatched'?'unit en route':'unit on scene';
+   return '<div class="svc-row"><span class="svc-dot" style="background:#'+inc.col.toString(16).padStart(6,'0')+'"></span><div><b>'+meta.label+'</b> &middot; '+(cty?cty.name:'open country')+'<br><span class="svc-st">'+st+'</span></div></div>';
+  }).join('');
+ }
+ const note=$('svc-note');
+ if(note)note.textContent=cases.length?cases.length+' case'+(cases.length>1?'s':'')+' in court — fines are collected when the judge rules.'
+  :(CIV.court?'Court house is ready: arrests get prosecuted and fines come back to the city.'
+  :'No court house yet, so arrested suspects are released without a fine.');
+}
+
+/* ---------- per-frame civic update ---------- */
+function civicFrame(dt,now){
+ const f=focus();
+ if(sigDirty||Math.hypot(f.x-sigAt.x,f.z-sigAt.z)>26||now-sigBuiltAt>15000){sigAt.x=f.x;sigAt.z=f.z;rebuildSignals()}
+ updateSignalColors();
+
+ if(now-lastCivScan>2200){lastCivScan=now;scanCivic()}
+
+ incTimer-=dt;
+ if(incTimer<=0){
+  incTimer=13+Math.random()*10;
+  if(incidents.length<6&&pop>0){
+   const pool=[];
+   if(pop>8)pool.push(['crime',clamp(crimeIdx/95,.05,.55)]);
+   if(CIV.factory>0)pool.push(['fire',.16]);
+   if(stats.road>40&&vehicles.length>5)pool.push(['accident',.18]);
+   let tot=0;for(const p of pool)tot+=p[1];
+   if(tot>0){
+    let rr=Math.random()*tot,type='crime';
+    for(const p of pool){rr-=p[1];if(rr<=0){type=p[0];break}}
+    spawnIncident(type);
+   }
+  }
+ }
+
+ for(let i=incidents.length-1;i>=0;i--){
+  const inc=incidents[i],age=(now-inc.t0)/1000;
+  if(inc.ring)inc.ring.scale.setScalar(1+Math.sin(now/220+inc.id)*.18);
+  if(inc.beam)inc.beam.material.opacity=.18+.12*Math.sin(now/300+inc.id);
+  if(inc.state==='open'){
+   if(!dispatchFor(inc)&&age>40){failIncident(inc);incidents.splice(i,1)}
+  }else if(inc.state==='dispatched'){
+   const u=inc.unit;
+   if(!u||vehicles.indexOf(u)<0){inc.unit=null;inc.state='open';continue}
+   const age2=(now-(inc.dispatchedAt||now))/1000;
+   if(!u.path&&u.dest&&Math.random()<.12){const r2=routeFor(u,inc);if(r2&&r2.length){u.path=r2;resyncPath(u)}}
+   if(age2>14&&Math.hypot(u.x-inc.x,u.z-inc.z)>40){
+    const w2=spawnUnitNear(inc,INC_META[inc.type].unit);
+    if(w2){u.dest=null;u.path=null;u.urgent=false;u.incident=null;u.idleAt=now;assignUnit(w2,inc,[]);continue}
+   }
+   if(Math.hypot(u.x-inc.x,u.z-inc.z)<5){inc.state='onscene';inc.arrived=now}
+  }else if(inc.state==='onscene'){
+   if(now-inc.arrived>2400){resolveIncident(inc);incidents.splice(i,1)}
+  }
+ }
+
+ if(cases.length){
+  for(let i=cases.length-1;i>=0;i--){
+   cases[i].t-=dt;
+   if(cases[i].t<=0){
+    const c=cases[i];civ.convictions++;civ.fines+=c.fine;cash+=c.fine;cases.splice(i,1);
+    if(now-lastVerdictToast>9000){lastVerdictToast=now;toast('Court verdict in '+c.name+' — fine $'+c.fine.toLocaleString('en-US')+' collected')}
+    updateHud();
+   }
+  }
+ }
+
+ for(const v of vehicles.slice()){
+  if(!v.temp)continue;
+  if(Math.hypot(v.x-f.x,v.z-f.z)>200)removeVehicle(v);
+  else if(!v.dest&&v.idleAt&&now-v.idleAt>26000)removeVehicle(v);
+ }
+
+ if(stadiumN>0){
+  matchT-=dt;
+  if(matchT<=0){
+   matchT=80+Math.random()*60;
+   const gate=1200*stadiumN+Math.floor(Math.random()*900);
+   cash+=gate;updateHud();
+   toast('Match day at the stadium — gate receipts +$'+gate.toLocaleString('en-US'));
+  }
+ }
+ if(now-lastSvcPaint>800){lastSvcPaint=now;if(svcModal&&svcModal.classList.contains('open'))renderServices()}
+ updateCivicHud();
+}
+if(document.getElementById('menu-services'))document.getElementById('menu-services').onclick=()=>{closeMenu();scanCivic();renderServices();openModal('modal-services')};
 
 // ===== TOOLS & EDITS =====
 let cur='inspect',chain=null,catKey='c',cash=850000,pop=0,saveT=0;
@@ -1298,7 +2139,7 @@ function applyOne(id,gx,gz){
  if(id==='board'){
   if(c.t!==0||c.b){toast('Needs empty grass');return false}
   const cty=cityOfTile(gx,gz),def=cty?cty.name:'My Town',txt=window.prompt('Name board text:',def);if(!txt)return false;if(!spend(300))return false;
-  c.b=mkB('board',gx,gz,faceRotG(gx,gz)+Math.PI,'WELCOME TO\n'+txt.toUpperCase()+(cty&&txt.toUpperCase()===cty.name.toUpperCase()?'\n'+cty.country:''));c.trees=[];touch(c);return true;
+  c.b=mkB('board',gx,gz,faceRotG(gx,gz),'WELCOME TO\n'+txt.toUpperCase()+(cty&&txt.toUpperCase()===cty.name.toUpperCase()?'\n'+cty.country:''));c.trees=[];touch(c);return true;
  }
  if(id==='park'||id==='plaza'){if(c.t!==0||c.b){toast('Needs empty grass');return false}if(!spend(id==='park'?400:600))return false;
   c.t=id==='park'?4:6;c.trees=[];c.b=mkB(id,gx,gz,0,'');if(id==='park'){const th=THEMES[themeName(gx,gz)];for(let k=0;k<3;k++)addTreeC(c,Math.random,th)}startPop(c);touch(c);return true}
@@ -1331,7 +2172,7 @@ function markChain(){if(chain){const p=cc(chain.gx,chain.gz);chMesh.position.x=p
 // ===== SAVE / LOAD =====
 function saveNow(){try{
  localStorage.setItem('cityrt4_edits',JSON.stringify([...edits]));
- localStorage.setItem('cityrt4_meta',JSON.stringify({cash:Math.floor(cash),tx,tz,yaw,pitch,dist,fleet:vehicles.filter(v=>v.fleet).map(v=>v.type)}));
+ localStorage.setItem('cityrt4_meta',JSON.stringify({cash:Math.floor(cash),tx,tz,yaw,pitch,dist,civ:civ,crime:crimeIdx,fleet:vehicles.filter(v=>v.fleet).map(v=>v.type)}));
 }catch(e){}}
 function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(saveNow,1500)}
 addEventListener('pagehide',saveNow);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveNow()});
@@ -1339,7 +2180,7 @@ setInterval(saveNow,30000);
 
 // ===== UI =====
 function toast(m){const b=$('status-banner');b.textContent=m;b.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>b.classList.remove('show'),2600)}
-function updateHud(){$('hud-cash').textContent='$'+Math.floor(cash).toLocaleString('en-US');$('hud-pop').textContent=pop.toLocaleString('en-US')}
+function updateHud(){$('hud-cash').textContent='$'+Math.floor(cash).toLocaleString('en-US');$('hud-pop').textContent=pop.toLocaleString('en-US');updateCivicHud()}
 function renderTabs(){
  $('category-tabs').innerHTML=CATS.map(c=>`<button class="cat-tab ${c[1]===catKey?'active':''}">${c[0]}</button>`).join('');
  $('category-tabs').querySelectorAll('.cat-tab').forEach((b,i)=>b.onclick=()=>{catKey=CATS[i][1];renderTabs();renderDock()});
@@ -1348,6 +2189,13 @@ function renderDock(){
  const dk=$('build-tools');dk.innerHTML=TOOLS.filter(t=>catKey===null||t.k===catKey||(catKey==='c'&&t.c)).map(t=>`<div class="tool-card ${t.id===cur?'active':''}" data-id="${t.id}">${icon(t.id)}<span class="tool-name">${t.n}</span><span class="tool-cost">${t.cost?'$'+t.cost.toLocaleString('en-US'):'free'}</span></div>`).join('');
  dk.querySelectorAll('.tool-card').forEach(el=>el.onclick=()=>{cur=el.dataset.id;chain=null;markChain();renderDock();toast(TOOLS.find(t=>t.id===cur).n+' selected')});
 }
+window.__buildSearch=function(q){
+ q=(q||'').trim().toLowerCase();
+ if(!q){renderDock();return}
+ const dk=$('build-tools'),list=TOOLS.filter(t=>t.n.toLowerCase().indexOf(q)>=0||t.id.indexOf(q)>=0);
+ dk.innerHTML=list.length?list.map(t=>`<div class="tool-card ${t.id===cur?'active':''}" data-id="${t.id}">${icon(t.id)}<span class="tool-name">${t.n}</span><span class="tool-cost">${t.cost?'$'+t.cost.toLocaleString('en-US'):'free'}</span></div>`).join(''):'<div class="dock-empty">No tool matches “'+q.replace(/[<>&]/g,'')+'”</div>';
+ dk.querySelectorAll('.tool-card').forEach(el=>el.onclick=()=>{cur=el.dataset.id;chain=null;markChain();renderDock();toast(TOOLS.find(t=>t.id===cur).n+' selected')});
+};
 window.openModal=id=>$(id).classList.add('open');
 window.closeModal=id=>$(id).classList.remove('open');
 const THEME_NAME=t=>({temperate:'Terracotta',arid:'Sandstone',lush:'Tropical',cold:'Slate'})[t];
@@ -1363,7 +2211,7 @@ function renderFleet(){
  $('fleet-list').innerHTML=f.length?f.map(v=>`<div class="fleet-row"><div><b>${v.label}</b><br><span style="color:#57606a;">Driver: ${v.driver} · ${v.mode==='parked'?'Parked':v.mode==='manual'?'Driving':'Patrolling'}</span></div><div style="display:flex;gap:6px;"><button class="ui-btn" onclick="fleetAct(${v.id},'toggle')">${v.mode==='parked'?'Patrol':'Park'}</button><button class="ui-btn primary" onclick="fleetAct(${v.id},'drive')">Drive</button></div></div>`).join(''):'<div style="font-size:12px;color:#57606a;">No fleet vehicles yet. Buy one above.</div>';
 }
 window.buyVehicle=type=>{
- const cost={bus:18000,ambulance:24000,firetruck:32000}[type];if(cash<cost){toast('Not enough cash');return}
+ const cost={bus:18000,ambulance:24000,firetruck:32000,police:22000}[type];if(cash<cost){toast('Not enough cash');return}
  const v=addFleet(type);if(!v){toast('Need a road nearby');return}
  cash-=cost;updateHud();renderFleet();toast(v.label+' ready — driver '+v.driver);
 };
@@ -1519,6 +2367,7 @@ function frame(now){
  rebuildDirty(9);
    if(instDirty&&now-lastInst>140){rebuildInst();lastInst=now}
  if(now-lastTraf>1000){syncTraffic();lastTraf=now}
+ civicFrame(dt,now);
  if(now-lastHud>600){lastHud=now;$('hud-city').textContent=hudCity();recalcPop()}
 
  // vehicles
@@ -1603,7 +2452,7 @@ function frame(now){
 
  swayU.value=ts;waterU.uTime.value=ts;
  const ph=Math.floor(now/180)%2;matRed.emissiveIntensity=ph?2.6:.15;matBlue.emissiveIntensity=ph?.15:2.6;
- incT+=dt;if(incT>3){incT=0;cash+=pop*1.2;updateHud()}
+ incT+=dt;if(incT>3){incT=0;cash+=pop*1.2*devBonus;updateHud()}
  renderer.render(scene,cam);requestAnimationFrame(frame);
 }
 
@@ -1618,6 +2467,7 @@ renderTabs();renderDock();updateHud();
  }catch(err){}
  if(meta&&isFinite(meta.tx)&&isFinite(meta.tz)){
   cash=meta.cash||cash;tx=meta.tx;tz=meta.tz;yaw=meta.yaw||yaw;pitch=meta.pitch||pitch;dist=clamp(meta.dist||75,14,130);
+  if(meta.civ)Object.assign(civ,meta.civ);if(isFinite(meta.crime))crimeIdx=meta.crime;
   pendingFleet=(meta.fleet&&meta.fleet.length)?meta.fleet.slice():['bus','ambulance','firetruck'];
  }else{
   const c=cityInfo(2);tx=(c.mx+.5)*T;tz=(c.mz+.5)*T;pendingFleet=['bus','ambulance','firetruck'];
@@ -1639,14 +2489,61 @@ requestAnimationFrame(frame);
     var a = panel.querySelector(".tool-card.active .tool-name");
     return a && a.textContent ? a.textContent : "Build";
   }
-  function syncLabel() { if (label) label.textContent = currentToolName(); }
+  var search = document.getElementById("tool-search");
+  var closeBtn = document.getElementById("panel-close");
+  var foot = document.getElementById("panel-foot");
+
+  var footHTML = "";
+  function syncFoot() {
+    if (!foot) return;
+    var a = panel.querySelector(".tool-card.active");
+    var html;
+    if (!a) html = '<span class="foot-hint">Pick a tool, then tap the map.</span>';
+    else {
+      var n = (a.querySelector(".tool-name") || {}).textContent || "";
+      var c = (a.querySelector(".tool-cost") || {}).textContent || "";
+      html = "<b>" + n + "</b><span class=\"foot-cost\">" + c + "</span><span class=\"foot-hint\">tap the map to place</span>";
+    }
+    if (html === footHTML) return;   // never re-write the same markup
+    footHTML = html;
+    foot.innerHTML = html;
+  }
+
+  var lastName = "Build";
+  function syncLabel() {
+    var a = panel.querySelector(".tool-card.active .tool-name");
+    var name = a && a.textContent ? a.textContent : lastName;
+    lastName = name;
+    if (label) label.textContent = name;
+    gear.classList.toggle("has-tool", !!name && name !== "Inspect" && name !== "Build");
+    syncFoot();
+  }
   function isOpen() { return panel.classList.contains("open"); }
   function setOpen(open) {
     panel.classList.toggle("open", open);
     gear.classList.toggle("active", open);
     gear.setAttribute("aria-expanded", open ? "true" : "false");
-    if (open) syncLabel();
+    if (open) {
+      if (search) search.value = "";
+      if (window.__buildSearch) window.__buildSearch("");
+      syncLabel();
+      var tab = panel.querySelector(".cat-tab.active");
+      if (tab && tab.scrollIntoView) { try { tab.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) { tab.scrollIntoView(); } }
+    }
   }
+
+  if (search) {
+    search.addEventListener("input", function () {
+      if (window.__buildSearch) window.__buildSearch(search.value);
+      syncFoot();
+    });
+    search.addEventListener("keydown", function (e) {
+      e.stopPropagation();
+      if (e.key === "Escape") { search.value = ""; if (window.__buildSearch) window.__buildSearch(""); syncFoot(); }
+    });
+    search.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+  }
+  if (closeBtn) closeBtn.addEventListener("click", function () { setOpen(false); });
 
   gear.addEventListener("click", function (e) {
     e.preventDefault();
@@ -1676,17 +2573,29 @@ requestAnimationFrame(frame);
     setTimeout(function () { insideClick = false; }, 0);
     var t = e.target;
     if (!t || !t.closest) return;
-    if (t.closest(".tool-card")) {
+    var card = t.closest(".tool-card");
+    if (card) {
+      var nm = card.querySelector(".tool-name");
+      if (nm && nm.textContent) {          // remember the pick even if the list re-renders
+        lastName = nm.textContent;
+        if (label) label.textContent = lastName;
+        gear.classList.toggle("has-tool", lastName !== "Inspect" && lastName !== "Build");
+      }
       setOpen(false);              // close right away so the map is clear
       setTimeout(syncLabel, 30);   // the app sets .active in its own handler
     } else if (t.closest(".cat-tab")) {
       syncLabel();
+      setTimeout(function () {     // keep the chosen category in view
+        var a2 = panel.querySelector(".cat-tab.active");
+        if (a2 && a2.scrollIntoView) { try { a2.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) {} }
+      }, 20);
     }
   }, true); // capture: run before the app re-renders the dock
 
   // the app re-renders the tabs/dock, so keep the label in sync
-  if (window.MutationObserver) {
-    new MutationObserver(syncLabel).observe(panel, { childList: true, subtree: true });
+  var dockEl = document.getElementById("build-tools");
+  if (window.MutationObserver && dockEl) {
+    new MutationObserver(syncLabel).observe(dockEl, { childList: true, subtree: true });
   }
   syncLabel();
 })();
