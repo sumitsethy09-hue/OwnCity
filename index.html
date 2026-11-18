@@ -37,6 +37,10 @@
   .dd-item svg { width: 16px; height: 16px; flex-shrink: 0; }
   .dd-tag { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 5px; background: rgba(30,36,43,.1); font-family: monospace; }
   .dd-zoom-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; padding: 4px 4px 2px; }
+  .dd-rule { display: flex; align-items: center; gap: 6px; padding: 3px 9px 2px; }
+  .dd-rule-lbl { font-size: 11.5px; font-weight: 700; color: var(--ink-dark); flex: 1 1 auto; }
+  .dd-num { width: 56px; padding: 5px 6px; border-radius: 7px; border: 1.5px solid var(--bar-border); background: #fff; font-family: inherit; font-size: 12px; font-weight: 800; color: var(--ink-dark); text-align: center; }
+  .dd-rule-note { font-size: 10.5px; font-weight: 700; color: var(--ink-muted); padding: 0 9px 5px; }
   .dd-mini-btn { padding: 6px 4px; border-radius: 7px; background: #fff; border: 1px solid var(--bar-border); color: var(--ink-dark); font-size: 11px; font-weight: 700; cursor: pointer; }
   /* ---- settings button (top-left, under the top pill) ---- */
   #btn-settings { position: fixed; top: 58px; left: 10px; z-index: 31; display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 11px 0 10px; border-radius: 11px; background: var(--bar-ivory); border: 1.5px solid var(--bar-border); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--ink-dark); font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.16); pointer-events: auto; -webkit-tap-highlight-color: transparent; }
@@ -456,11 +460,28 @@
         <span class="dd-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2.2"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6l7-3z"/><path d="M9 11l2 2 4-4"/></svg><span>City Services &amp; Safety</span></span>
         <span class="dd-tag" id="svc-badge">0</span>
       </button>
+      <button class="dd-item" id="menu-office">
+        <span class="dd-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4h6v3M3 12h18"/></svg><span>City Office — permits</span></span>
+        <span class="dd-tag" id="office-badge">0</span>
+      </button>
       <div class="dd-label">View &amp; Camera</div>
       <button class="dd-item" id="menu-cam-toggle">
         <span class="dd-item-left"><svg viewBox="0 0 24 24" fill="none" stroke="#4338ca" stroke-width="2.2"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg><span>Camera Perspective</span></span>
         <span class="dd-tag" id="cam-mode-badge">3D VIEW</span>
       </button>
+      <div class="dd-label" id="rules-city">City rules</div>
+      <div class="dd-rule">
+        <span class="dd-rule-lbl">Vehicle limit</span>
+        <input id="veh-limit" class="dd-num" type="number" min="0" max="200" step="1" value="24" inputmode="numeric" />
+        <button class="dd-mini-btn" id="veh-apply">Set</button>
+      </div>
+      <div class="dd-rule-note" id="veh-count">0 / 24 vehicles</div>
+      <div class="dd-rule">
+        <span class="dd-rule-lbl">Population limit</span>
+        <input id="pop-limit" class="dd-num" type="number" min="0" max="100000" step="10" value="0" inputmode="numeric" />
+        <button class="dd-mini-btn" id="pop-apply">Set</button>
+      </div>
+      <div class="dd-rule-note" id="pop-count">0 residents · no limit</div>
       <div class="dd-zoom-grid">
         <button class="dd-mini-btn" id="menu-zoom-in">Zoom +</button>
         <button class="dd-mini-btn" id="menu-zoom-out">Zoom -</button>
@@ -563,6 +584,21 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="modal-office">
+  <div class="modal-box">
+    <div class="modal-head"><h3>City Office</h3><button class="ui-btn" onclick="closeModal('modal-office')">Close</button></div>
+    <div class="modal-body">
+      <div class="svc-label">Permission requests</div>
+      <div class="svc-list" id="office-requests"></div>
+      <div class="svc-label">Traffic posts</div>
+      <div class="svc-list" id="office-posts"></div>
+      <div class="svc-label">People in the city</div>
+      <div class="svc-list" id="office-people"></div>
+      <div class="svc-note" id="office-note"></div>
+    </div>
+  </div>
+</div>
+
 <!-- three.js r128 (MIT) inlined for offline use; original: https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js -->
 <script>/**
  * @license
@@ -636,21 +672,31 @@ const IC={
  signal:['#b45309','<rect x="8" y="2" width="8" height="14" rx="3"/><path d="M12 16v5M9 21h6"/><circle cx="12" cy="6" r="1.4"/><circle cx="12" cy="11" r="1.4"/>'],
  rail:['#4a5568','<path d="M8 3L6 21M16 3l2 18"/><path d="M4 7h16M4 12h16M4 17h16"/>'],
  metroline:['#0f766e','<path d="M3 17h18"/><path d="M6 17V9h12v8"/><path d="M4 21V9a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12"/><path d="M9 3v4M15 3v4"/>'],
+ trafficpost:['#0f766e','<rect x="4" y="8" width="9" height="12" rx="1"/><path d="M8.5 8V5h4M6 12h5M6 16h5"/><circle cx="18" cy="6" r="2"/>'],
+ parliament:['#7c2d12','<path d="M3 21h18M4 21V11l8-5 8 5v10M8 21v-6M12 21v-6M16 21v-6"/><path d="M12 2v4"/>'],
+ party:['#b45309','<rect x="4" y="9" width="16" height="12" rx="1"/><path d="M4 13h16M9 21v-5h6v5"/><path d="M12 9V4h6l-2 2 2 2h-6"/>'],
+ business:['#b45309','<path d="M4 9h16v11H4z"/><path d="M4 9l2-5h12l2 5M9 20v-6h6v6"/><path d="M3 9h18"/>'],
+ cutter:['#78716c','<path d="M4 20l7-7M20 20l-7-7"/><circle cx="12" cy="9" r="4"/><path d="M12 5V2"/>'],
+ railtunnel:['#4a5568','<path d="M4 21V11a8 8 0 0 1 16 0v10"/><path d="M8 21v-6a4 4 0 0 1 8 0v6"/><path d="M3 3l3 3M21 3l-3 3"/>'],
+ metrotunnel:['#0f766e','<path d="M3 21V12a9 9 0 0 1 18 0v9"/><path d="M7 21v-8a5 5 0 0 1 10 0v8"/><path d="M10 21v-6h4v6"/>'],
  rotate:['#4338ca','<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>']
 };
 const icon=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="${IC[k][0]}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[k][1]}</svg>`;
 const CATS=[['City','c'],['All',null],['Roads & River','r'],['Housing','h'],['Offices','o'],['Industry & Farm','i'],['Services','s'],['Transport','t'],['Civic & Leisure','l'],['Utilities','u'],['Parks','p']];
 const TOOLS=[
  {id:'wall',n:'Boundary',cost:40,k:'c'},{id:'gate',n:'Entry Gate',cost:600,k:'c'},
- {id:'inspect',n:'Inspect',cost:0,k:'r',c:1},{id:'road',n:'Road',cost:50,k:'r'},{id:'river',n:'River Canal',cost:120,k:'r'},{id:'clear',n:'Bulldoze',cost:0,k:'r',c:1},{id:'signal',n:'Traffic Signal',cost:180,k:'r'},{id:'rotate',n:'Rotate',cost:0,k:'r',c:1},
+ {id:'inspect',n:'Inspect',cost:0,k:'r',c:1},{id:'road',n:'Road',cost:50,k:'r'},{id:'river',n:'River Canal',cost:120,k:'r'},{id:'clear',n:'Bulldoze',cost:0,k:'r',c:1},{id:'signal',n:'Traffic Signal',cost:180,k:'r'},{id:'cutter',n:'Rock Cutter',cost:250,k:'r'},{id:'rotate',n:'Rotate',cost:0,k:'r',c:1},
  {id:'house',n:'House',cost:800,k:'h'},{id:'villa',n:'Villa',cost:1800,k:'h'},{id:'apartment',n:'Apartment',cost:3200,k:'h'},
  {id:'office',n:'Office',cost:4500,k:'o'},{id:'tower',n:'Clock Tower',cost:6000,k:'o'},{id:'dome',n:'Dome Hall',cost:5000,k:'o'},
  {id:'factory',n:'Factory',cost:3500,k:'i'},{id:'turbine',n:'Wind Turbine',cost:2800,k:'i'},{id:'farm',n:'Farmland',cost:150,k:'i'},{id:'barn',n:'Red Barn',cost:900,k:'i'},{id:'silo',n:'Grain Silo',cost:700,k:'i'},
  {id:'hospital',n:'Hospital',cost:7000,k:'s'},{id:'fire',n:'Fire Station',cost:4500,k:'s'},{id:'school',n:'School',cost:3800,k:'s'},{id:'police',n:'Police Station',cost:6500,k:'s'},{id:'court',n:'Court House',cost:9000,k:'s'},{id:'busstand',n:'Bus Stand',cost:2600,k:'t'},{id:'busstop',n:'Bus Stop',cost:250,k:'t'},{id:'railway',n:'Railway Station',cost:12000,k:'t'},{id:'rail',n:'Railway Track',cost:90,k:'t'},
- {id:'metro',n:'Metro Station',cost:9000,k:'t'},{id:'metroline',n:'Metro Viaduct',cost:320,k:'t'},{id:'parking',n:'Parking Lot',cost:900,k:'t'},{id:'petrol',n:'Petrol Pump',cost:1400,k:'t'},{id:'ev',n:'EV Charging',cost:2200,k:'t'},{id:'stadium',n:'Stadium',cost:18000,k:'l'},{id:'mall',n:'Shopping Mall',cost:9500,k:'l'},{id:'cinema',n:'Cinema Hall',cost:6000,k:'l'},{id:'library',n:'Library',cost:3400,k:'l'},{id:'museum',n:'Museum',cost:6500,k:'l'},{id:'playground',n:'Playground',cost:700,k:'l'},{id:'post',n:'Post Office',cost:1800,k:'l'},{id:'bank',n:'Bank',cost:3000,k:'l'},{id:'temple',n:'Temple',cost:2400,k:'l'},{id:'mosque',n:'Mosque',cost:3200,k:'l'},{id:'church',n:'Church',cost:3200,k:'l'},{id:'water',n:'Water Tower',cost:2800,k:'u'},{id:'power',n:'Power Substation',cost:4200,k:'u'},{id:'waste',n:'Waste Plant',cost:3600,k:'u'},
+ {id:'metro',n:'Metro Station',cost:9000,k:'t'},{id:'metroline',n:'Metro Viaduct',cost:320,k:'t'},
+ {id:'trafficpost',n:'Traffic Post',cost:400,k:'t'},{id:'railtunnel',n:'Railway Tunnel',cost:600,k:'t'},{id:'metrotunnel',n:'Metro Tunnel',cost:900,k:'t'},{id:'parking',n:'Parking Lot',cost:900,k:'t'},{id:'petrol',n:'Petrol Pump',cost:1400,k:'t'},{id:'ev',n:'EV Charging',cost:2200,k:'t'},{id:'stadium',n:'Stadium',cost:18000,k:'l'},{id:'mall',n:'Shopping Mall',cost:9500,k:'l'},{id:'cinema',n:'Cinema Hall',cost:6000,k:'l'},{id:'library',n:'Library',cost:3400,k:'l'},{id:'museum',n:'Museum',cost:6500,k:'l'},{id:'playground',n:'Playground',cost:700,k:'l'},{id:'post',n:'Post Office',cost:1800,k:'l'},{id:'bank',n:'Bank',cost:3000,k:'l'},{id:'temple',n:'Temple',cost:2400,k:'l'},{id:'mosque',n:'Mosque',cost:3200,k:'l'},{id:'church',n:'Church',cost:3200,k:'l'},{id:'parliament',n:'Government House',cost:25000,k:'l'},{id:'party',n:'Party Office',cost:4000,k:'l'},{id:'business',n:'Business House',cost:3500,k:'l'},
+ {id:'water',n:'Water Tower',cost:2800,k:'u'},{id:'power',n:'Power Substation',cost:4200,k:'u'},{id:'waste',n:'Waste Plant',cost:3600,k:'u'},
  {id:'tree',n:'Trees',cost:30,k:'p'},{id:'park',n:'Park',cost:400,k:'p'},{id:'plaza',n:'Fountain Plaza',cost:600,k:'p'}
 ];
-const LABEL={house:'House',villa:'Villa',apartment:'Apartment block',office:'Limestone office',tower:'Clock tower',dome:'Dome hall',factory:'Factory',turbine:'Wind turbine',barn:'Red barn',silo:'Grain silo',hospital:'Hospital',fire:'Fire station',school:'School',park:'Park',plaza:'Fountain plaza',wall:'Boundary wall',gate:'Entry gate',signal:'Traffic signal',police:'Police station',court:'Court house',busstand:'Bus stand',busstop:'Bus stop',railway:'Railway station',rail:'Railway track',metro:'Metro station',metroline:'Metro viaduct',parking:'Parking lot',petrol:'Petrol pump',ev:'EV charging hub',stadium:'Stadium',mall:'Shopping mall',cinema:'Cinema hall',library:'Library',museum:'Museum',playground:'Playground',post:'Post office',bank:'Bank',temple:'Temple',mosque:'Mosque',church:'Church',water:'Water tower',power:'Power substation',waste:'Waste plant'};
+const LABEL={house:'House',villa:'Villa',apartment:'Apartment block',office:'Limestone office',tower:'Clock tower',dome:'Dome hall',factory:'Factory',turbine:'Wind turbine',barn:'Red barn',silo:'Grain silo',hospital:'Hospital',fire:'Fire station',school:'School',park:'Park',plaza:'Fountain plaza',wall:'Boundary wall',gate:'Entry gate',signal:'Traffic signal',police:'Police station',court:'Court house',busstand:'Bus stand',busstop:'Bus stop',railway:'Railway station',rail:'Railway track',metro:'Metro station',metroline:'Metro viaduct',trafficpost:'Traffic post',railtunnel:'Railway tunnel',metrotunnel:'Metro tunnel',
+ parliament:'Government house',party:'Party office',business:'Business house',cutter:'Rock cutter',hill:'Rocky hill',parking:'Parking lot',petrol:'Petrol pump',ev:'EV charging hub',stadium:'Stadium',mall:'Shopping mall',cinema:'Cinema hall',library:'Library',museum:'Museum',playground:'Playground',post:'Post office',bank:'Bank',temple:'Temple',mosque:'Mosque',church:'Church',water:'Water tower',power:'Power substation',waste:'Waste plant'};
 const POP={house:4,villa:7,apartment:20};
 const THEMES={
  temperate:{wall:[0xf0e2c3,0xe8d3a8,0xd9b98a,0xf3ead7,0xe6c4a0,0xcfd8c0,0xc9d6e0,0xf2cfa0],roof:[0xc4572f,0xb84a2a,0xa8452b,0xcf6a3a,0x8f3d2b],flat:false,grass:0x7f9f55,conf:.25,tree:[0x7fae45,0x8fc24f,0x6c9e3b,0x9cc858,0x5f9440,0xb8d060,0xe0a050,0xe88f8f],con:[0x3f7a4a,0x4a8a52,0x356b43]},
@@ -708,8 +754,16 @@ function roadLineG(gx,gz){
  return false;
 }
 // rotation that turns a building's front towards a road it actually touches (null if none)
+// NOTE: must never call tPeek here - tPeek builds a cell, and baseCell calls faceRotG.
+function peekT(gx,gz){
+ const c=loadedCell(gx,gz);
+ if(c)return c.t;
+ const e=edits.get(ekey(gx,gz));
+ if(e)return e.t;
+ return roadLineG(gx,gz)?1:0;
+}
 function roadTouchRot(gx,gz){
- const rd=(x,z)=>{const t=tPeek(x,z);return t===1||t===5};
+ const rd=(x,z)=>{const t=peekT(x,z);return t===1||t===5};
  if(rd(gx,gz+1))return 0;
  if(rd(gx,gz-1))return Math.PI;
  if(rd(gx+1,gz))return Math.PI/2;
@@ -720,7 +774,7 @@ function faceRotG(gx,gz){
  const r=roadTouchRot(gx,gz);
  if(r!==null)return r;
  // nothing touching: face the closest road within 3 tiles
- const rd=(x,z)=>{const t=tPeek(x,z);return t===1||t===5};
+ const rd=(x,z)=>{const t=peekT(x,z);return t===1||t===5};
  for(let rad=2;rad<=3;rad++){
   let best=null,bd=1e9;
   for(let a=-rad;a<=rad;a++)for(let b=-rad;b<=rad;b++){
@@ -771,6 +825,11 @@ function baseCell(gx,gz,withTrees){
  const c={gx,gz,t:0,crop:0,b:null,trees:[]};
  const city=cityOfTile(gx,gz),water=riverAtG(gx,gz,city),road=roadLineG(gx,gz);
  if(road)c.t=water?5:1;else if(water)c.t=2;
+ // rocky hills away from the cities (they block building until cut)
+ if(c.t===0&&!road&&!water){
+  const inCity=city&&Math.max(Math.abs(gx-city.mx),Math.abs(gz-city.mz))<=city.R+6;
+  if(!inCity&&vn(gx*.055,gz*.055,WS+11)>.70)c.t=9;
+ }
  let ox=0,oz=0,D=9999,inside=false;
  if(city){ox=gx-city.mx;oz=gz-city.mz;D=Math.max(Math.abs(ox),Math.abs(oz));inside=D<=city.R}
  // city boundary: wall + gate
@@ -1386,6 +1445,59 @@ B.waste=(mb,r,th,o)=>{
 B.signal=(mb,r,th,o)=>{o.wall=0x2b3034};
 B.railline=(mb,r,th,o)=>{o.wall=0x6b655c};
 B.metroline=(mb,r,th,o)=>{o.wall=0xc4cad0};
+B.railtunnel=(mb,r,th,o)=>{o.wall=0x8f8578};
+B.metrotunnel=(mb,r,th,o)=>{o.wall=0x8f8578};
+B.trafficpost=(mb,r,th,o)=>{
+ o.wall=0xf4f1ea;
+ mb.add('box',0,0,0,1.5,.06,1.5,0x9aa0a6,{noEdge:true});
+ mb.add('box',-.35,0,-.35,.9,1.15,.9,0xf4f1ea);
+ mb.add('box',-.35,1.15,-.35,1.0,.1,1.0,0x2f6f9f);
+ mb.add('box',-.35,.55,.1,.6,.4,.04,0x8fbfdc,{glass:true});
+ mb.add('cyl',.55,0,.45,.04,1.5,.04,0xcfd3d8,{noEdge:true});
+ mb.add('box',.55,1.5,.45,.5,.3,.04,0x2f6f9f);
+ mb.add('cyl',.45,0,-.5,.13,.75,.13,0xb8a06a);
+ mb.add('box',.45,.75,-.5,.26,.5,.18,0x8a7a4a);
+ mb.add('box',.45,1.25,-.5,.2,.2,.18,0xf1c9a5);
+ mb.add('box',.45,1.45,-.5,.24,.06,.22,0xf4f4f2,{noEdge:true});
+ mb.add('box',.58,1.1,-.5,.06,.34,.06,0xf1c9a5,{rz:-.5});
+};
+B.parliament=(mb,r,th,o)=>{
+ o.wall=0xece5d4;
+ mb.add('box',0,0,0,2.9,.3,2.4,0xd8cfba);
+ mb.add('box',0,.3,0,2.7,.3,2.2,0xe4dbc6);
+ mb.add('box',0,.6,-.1,2.4,1.7,1.8,0xece5d4);
+ mb.add('box',0,2.3,-.1,2.5,.14,1.9,0xd6cbb2);
+ mb.add('prism',0,2.44,-.1,2.56,.9,1.95,0xc9bda2);
+ for(let i=-2;i<=2;i++)mb.add('cyl',i*.46,.6,.7,.1,1.7,.1,0xf4efe2,{noEdge:true});
+ mb.add('box',0,2.3,.7,2.4,.14,.28,0xe8e0cc);
+ mb.add('box',0,.6,.74,1.2,.18,.24,0xd8cfba);
+ mb.add('cyl',0,3.34,-.1,.07,.8,.07,0xd8b24a,{noEdge:true});
+ mb.add('box',0,4.1,-.1,.5,.3,.06,0xe0702a,{glass:true});
+};
+B.business=(mb,r,th,o)=>{
+ o.wall=0xe9e3d6;
+ mb.add('box',0,0,0,2.3,1.2,1.9,0xe9e3d6);
+ mb.add('box',0,1.2,0,2.4,.14,2.0,0x8a5a46);
+ mb.add('box',0,0,1.0,.9,.75,.06,0x34475a);
+ mb.add('box',0,.78,1.06,2.0,.34,.1,0xd9534f,{noEdge:true});
+ for(let i=-2;i<=2;i++)mb.add('box',i*.4,.78,1.12,.2,.34,.04,0xf4f4f2,{noEdge:true});
+ mb.add('box',0,1.42,1.02,1.6,.4,.06,0x2f6f9f);
+ mb.win(-.65,.6,1.0,.4,.4,0);mb.win(.65,.6,1.0,.4,.4,0);
+ mb.add('cyl',.95,1.34,-.5,.03,1.0,.03,0xcfd3d8,{noEdge:true});
+ mb.add('plane',1.15,1.9,-.5,.45,.28,1,0x2f6f9f);
+};
+B.party=(mb,r,th,o)=>{
+ o.wall=0xf1ece0;
+ mb.add('box',0,0,0,1.9,1.1,1.6,0xf1ece0);
+ mb.add('box',0,1.1,0,2.0,.12,1.7,0xb9573b);
+ mb.add('box',0,0,.82,.6,.75,.06,0x34475a);
+ mb.win(-.55,.6,.81,.4,.35,0);mb.win(.55,.6,.81,.4,.35,0);
+ mb.add('cyl',.85,1.22,-.4,.03,1.1,.03,0xcfd3d8,{noEdge:true});
+ mb.add('plane',1.05,1.9,-.4,.5,.3,1,0xd9534f);
+ mb.add('box',0,1.22,.55,.8,.24,.05,0xf2c14e,{glass:true});
+};
+B.railline=(mb,r,th,o)=>{o.wall=0x6b655c};
+B.metroline=(mb,r,th,o)=>{o.wall=0xc4cad0};
 function bGeo(b,gx,gz){
  if(b.mb)return b.mb;const mb=new MB(),o={wall:b.wall};
  B[b.kind](mb,rng32(b.seed),THEMES[themeName(gx,gz)],o);b.wall=o.wall;b.mb=mb.freeze();return b.mb;
@@ -1415,10 +1527,12 @@ function cellB(gx,gz){
  const e=edits.get(ekey(gx,gz));
  return e&&e.kind?{kind:e.kind}:null;
 }
-const railAt=(gx,gz)=>{const b=cellB(gx,gz);return !!(b&&b.kind==='railline')};
-const metroAt=(gx,gz)=>{const b=cellB(gx,gz);return !!(b&&(b.kind==='metroline'||b.kind==='metro'))};
+const RAILK={railline:1,railtunnel:1},METROK={metroline:1,metrotunnel:1,metro:1};
+const railAt=(gx,gz)=>{const b=cellB(gx,gz);return !!(b&&RAILK[b.kind])};
+const metroAt=(gx,gz)=>{const b=cellB(gx,gz);return !!(b&&METROK[b.kind])};
 function lineMask(gx,gz,kind){
- const at=(x,z)=>{const b=cellB(x,z);return !!(b&&(b.kind===kind||(kind==='metroline'&&b.kind==='metro')))};
+ const set=kind==='railline'?RAILK:METROK;
+ const at=(x,z)=>{const b=cellB(x,z);return !!(b&&set[b.kind])};
  let m=0;if(at(gx,gz+1))m|=1;if(at(gx,gz-1))m|=2;if(at(gx+1,gz))m|=4;if(at(gx-1,gz))m|=8;
  return m||5;
 }
@@ -1454,6 +1568,90 @@ function metroMB(mask){
  if(!(mask&4))mb.add('box',1.4,H+.18,0,.12,.26,2.96,0xeff2f5,{noEdge:true});
  if(!(mask&8))mb.add('box',-1.4,H+.18,0,.12,.26,2.96,0xeff2f5,{noEdge:true});
  return METROMB[mask]=mb.freeze();
+}
+// ---- rocky hills ----
+const HILLMB=[];
+function hillMB(v){
+ if(HILLMB[v])return HILLMB[v];
+ const mb=new MB(),r=rng32(1000+v*77),rock=0x8f8578,rock2=0x7d7468;
+ for(let i=0;i<3;i++){
+  const s=.9+r()*.5,x=(r()-.5)*1.1,z=(r()-.5)*1.1,h=1.1+r()*1.5;
+  mb.add('ico',x,h*.42,z,s*.55,h*.5,s*.55,i%2?rock2:rock,{noEdge:true});
+ }
+ mb.add('cone6',0,0,0,1.25,1.5,1.25,rock,{noEdge:true});
+ mb.add('cone6',.35,1.0,.25,.8,1.1,.8,rock2,{noEdge:true});
+ mb.add('box',0,0,0,2.5,.12,2.5,0x6f6a60,{noEdge:true});
+ return HILLMB[v]=mb.freeze();
+}
+// ---- tunnels through the rock ----
+const TUNMB={};
+function tunnelMB(kind,mask){
+ const key=kind+mask;if(TUNMB[key])return TUNMB[key];
+ const mb=new MB(),rock=0x8f8578,rock2=0x7d7468;
+ const tall=kind==='metro'?5.2:2.8;
+ const armZ=!!(mask&3),armX=!!(mask&12);
+ if(armZ||!armX){
+  mb.add('box',-1.35,0,0,.62,tall,2.95,rock,{noEdge:true});
+  mb.add('box',1.35,0,0,.62,tall,2.95,rock2,{noEdge:true});
+  mb.add('box',0,tall,0,2.95,.85,2.95,rock,{noEdge:true});
+ }else{
+  mb.add('box',0,0,-1.35,2.95,tall,.62,rock,{noEdge:true});
+  mb.add('box',0,0,1.35,2.95,tall,.62,rock2,{noEdge:true});
+  mb.add('box',0,tall,0,2.95,.85,2.95,rock,{noEdge:true});
+ }
+ if(kind==='rail'){
+  if(armZ)for(const sx of[-.45,.45])mb.add('box',sx,.12,0,.1,.1,3,0xa8aeb4,{noEdge:true});
+  if(armX)for(const sz of[-.45,.45])mb.add('box',0,.12,sz,3,.1,.1,0xa8aeb4,{noEdge:true});
+  mb.add('box',0,.05,0,2.2,.05,3,0x5a4a34,{noEdge:true});
+ }else{
+  mb.add('box',0,METRO_Y,0,2.9,.16,2.9,0xe3e8ed,{noEdge:true});
+  if(armZ)for(const sx of[-.45,.45])mb.add('box',sx,METRO_Y+.2,0,.1,.1,3,0x8f959b,{noEdge:true});
+  if(armX)for(const sz of[-.45,.45])mb.add('box',0,METRO_Y+.2,sz,3,.1,.1,0x8f959b,{noEdge:true});
+ }
+ return TUNMB[key]=mb.freeze();
+}
+// ---- level crossings ----
+function crossingInfo(gx,gz){
+ if(tPeek(gx,gz)!==1)return null;
+ const nz=railAt(gx,gz+1)&&railAt(gx,gz-1),nx=railAt(gx+1,gz)&&railAt(gx-1,gz);
+ if(nz&&!nx)return 'z';if(nx&&!nz)return 'x';
+ return null;
+}
+const XMB={};
+function crossingMB(axis){
+ if(XMB[axis])return XMB[axis];
+ const mb=new MB();
+ mb.add('box',0,.02,0,3,.04,3,0x8a8478,{noEdge:true});
+ if(axis==='z'){
+  for(const sx of[-.45,.45])mb.add('box',sx,.1,0,.1,.1,3,0xa8aeb4,{noEdge:true});
+  for(let i=-1;i<=1;i++)mb.add('box',0,.06,i*.95,2.4,.05,.16,0x5a4a34,{noEdge:true});
+  for(const sz of[-1,1])mb.add('box',0,.14,sz*.45,3,.03,.06,0xf4f4f2,{noEdge:true});
+  for(const sx of[-1.32,1.32])for(const sz of[-1.15,1.15])mb.add('cyl',sx,0,sz,.06,1.05,.06,0xd9dde2,{noEdge:true});
+ }else{
+  for(const sz of[-.45,.45])mb.add('box',0,.1,sz,3,.1,.1,0xa8aeb4,{noEdge:true});
+  for(let i=-1;i<=1;i++)mb.add('box',i*.95,.06,0,.16,.05,2.4,0x5a4a34,{noEdge:true});
+  for(const sx of[-1,1])mb.add('box',sx*.45,.14,0,.06,.03,3,0xf4f4f2,{noEdge:true});
+  for(const sz of[-1.32,1.32])for(const sx of[-1.15,1.15])mb.add('cyl',sx,0,sz,.06,1.05,.06,0xd9dde2,{noEdge:true});
+ }
+ return XMB[axis]=mb.freeze();
+}
+const gateArms=[],gateState=new Map();
+const gGateArm=new THREE.BoxGeometry(.09,.09,2.4).translate(0,0,1.2);
+const matGateArm=new THREE.MeshStandardMaterial({color:lin(0xf2f4f7),roughness:.7});
+const matGateStripe=new THREE.MeshStandardMaterial({color:lin(0xd9534f),roughness:.7});
+function gateFrac(gx,gz){const g=gateState.get(ekey(gx,gz));return g?g.frac:0}
+function buildGates(ch,extra,gx,gz,axis,px,pz){
+ const mk=(x,z,ry)=>{
+  const grp=new THREE.Group();grp.position.set(x,.95,z);grp.rotation.y=ry;
+  const arm=new THREE.Mesh(gGateArm,matGateArm);
+  arm.add(new THREE.Mesh(new THREE.BoxGeometry(.1,.1,.6).translate(0,0,1.9),matGateStripe));
+  grp.add(arm);extra.add(grp);return arm;
+ };
+ const list=axis==='z'
+  ?[mk(px-1.32,pz+1.15,0),mk(px-1.32,pz-1.15,Math.PI),mk(px+1.32,pz+1.15,0),mk(px+1.32,pz-1.15,Math.PI)]
+  :[mk(px+1.15,pz-1.32,Math.PI/2),mk(px-1.15,pz-1.32,Math.PI/2),mk(px+1.15,pz+1.32,Math.PI/2),mk(px-1.15,pz+1.32,Math.PI/2)];
+ for(const arm of list)gateArms.push({ch,arm,gx,gz});
+ gateState.set(ekey(gx,gz),{frac:0,axis});
 }
 const BR={};
 function bridgeMB(rL,rR,junction){
@@ -1519,7 +1717,8 @@ function dropChunk(ch){
  chunks.delete(ckey(ch.cx,ch.cz));chunkArr=[...chunks.values()];instDirty=true;
 }
 function rebuildChunk(ch){
- const d=new MB(),extra=new THREE.Group();ch.rotors=[];const x0=ch.cx*CH,z0=ch.cz*CH;
+ const d=new MB(),extra=new THREE.Group();ch.rotors=[];
+ for(let i=gateArms.length-1;i>=0;i--)if(gateArms[i].ch===ch)gateArms.splice(i,1);const x0=ch.cx*CH,z0=ch.cz*CH;
  for(let lz=0;lz<CH;lz++)for(let lx=0;lx<CH;lx++){
   const c=ch.cells[lz*CH+lx],gx=x0+lx,gz=z0+lz,px=(gx+.5)*T,pz=(gz+.5)*T,b=c.b;
   if(b&&!b.pending&&!b.skip){
@@ -1528,11 +1727,15 @@ function rebuildChunk(ch){
    else if(k==='gate')appendMB(d,GATE,px,0,pz,b.rot);
    else if(k==='turbine'){appendMB(d,bGeo(b,gx,gz),px,0,pz,0);const r=rotorProto.clone();r.position.set(px,5.8,pz+.45);extra.add(r);ch.rotors.push(r)}
    else if(k==='railline')appendMB(d,railMB(lineMask(gx,gz,'railline')),px,0,pz,0);
+   else if(k==='railtunnel')appendMB(d,tunnelMB('rail',lineMask(gx,gz,'railline')),px,0,pz,0);
+   else if(k==='metrotunnel')appendMB(d,tunnelMB('metro',lineMask(gx,gz,'metroline')),px,0,pz,0);
    else if(k==='metroline')appendMB(d,metroMB(lineMask(gx,gz,'metroline')),px,0,pz,0);
    else appendMB(d,bGeo(b,gx,gz),px,0,pz,(k==='park'||k==='plaza')?0:b.rot);
   }
   if(c.t===3){const fm=fenceMB(gx,gz);if(fm)appendMB(d,fm,px,0,pz,0)}
   else if(c.t===5){const bi=bridgeInfo(gx,gz);appendMB(d,bridgeMB(bi.rL,bi.rR,bi.junction),px,0,pz,bi.axis==='z'?-Math.PI/2:0)}
+  else if(c.t===9&&!b)appendMB(d,hillMB(Math.floor(h2(gx,gz,91)*4)),px,0,pz,0);
+  else if(c.t===1){const cr=crossingInfo(gx,gz);if(cr){appendMB(d,crossingMB(cr),px,0,pz,0);buildGates(ch,extra,gx,gz,cr,px,pz)}}
  }
  if(ch.grp){scene.remove(ch.grp);disp(ch.grp)}if(ch.extra)scene.remove(ch.extra);
  ch.grp=d.build(true);ch.extra=extra;scene.add(ch.grp);scene.add(extra);ch.dirty=false;
@@ -1785,7 +1988,7 @@ function stepV(v,dt){
   const acc=(input.up?1:0)-(input.down?1:0);v.speed+=acc*10*dt;v.speed-=v.speed*1.3*dt;v.speed=clamp(v.speed,-4,def.speed*1.7);
   v.h+=((input.left?1:0)-(input.right?1:0))*1.9*dt*clamp(v.speed/3,-1,1);
   const nx=v.x+Math.sin(v.h)*v.speed*dt,nz=v.z+Math.cos(v.h)*v.speed*dt,gx=Math.floor(nx/T),gz=Math.floor(nz/T),t=tPeek(gx,gz),lc2=loadedCell(gx,gz);
-  if(t!==2&&!(lc2&&lc2.b&&!['park','plaza','gate','signal','metroline'].includes(lc2.b.kind))){v.x=nx;v.z=nz}else v.speed=0;
+  if(t!==2&&!(lc2&&lc2.b&&!['park','plaza','gate','signal','metroline','trafficpost'].includes(lc2.b.kind))){v.x=nx;v.z=nz}else v.speed=0;
   placeV(v);return;
  }
  if(v.mode==='parked'){placeV(v);return}
@@ -1798,6 +2001,7 @@ function stepV(v,dt){
   if(!v.dwell&&(hasStn(v.nx,v.nz)||hasStn(v.nx+1,v.nz)||hasStn(v.nx-1,v.nz)||hasStn(v.nx,v.nz+1)||hasStn(v.nx,v.nz-1)))v.dwell=2.2;
   if(v.dwell>0){v.dwell-=dt;target=0}
  }
+ if(!v.urgent&&v.t<.72&&(v.type==='car'||v.type==='bus'||v.type==='tractor')&&gateFrac(v.nx,v.nz)>.55){target=0;v.t=Math.min(v.t,.70)}
  if(!v.urgent&&v.t<.72&&sigRed(v)){
   v.sigW=(v.sigW||0)+dt;
   if(v.sigW<22){target=0;v.t=Math.min(v.t,.70)} else v.sigW=0;   // never wait forever
@@ -1831,6 +2035,8 @@ function addFleet(type){
  const c=randomCellNear(c=>c.t===1,90);if(!c)return null;
  const v=newVehicleAt(type,FLEET_COL[type],true,c.gx,c.gz);v.label=FLEET_LABEL[type]+' #'+(nameN[type]=(nameN[type]||0)+1);return v;
 }
+let vehLimit=24,popLimit=0;
+function civCount(){let n=0;for(const v of vehicles)if(!v.fleet)n++;return n}
 function syncTraffic(){
  const f=focus();
  for(const v of vehicles.slice())if(!v.fleet&&Math.hypot(v.x-f.x,v.z-f.z)>190)removeVehicle(v);
@@ -1838,10 +2044,16 @@ function syncTraffic(){
  if(chunkArr.length<6)return;
  while(pendingFleet.length){const v=addFleet(pendingFleet[0]);if(!v)break;pendingFleet.shift();renderFleet()}
  const cnt=t=>vehicles.filter(v=>v.type===t&&!v.fleet).length;
- const spawn=(type,col,pred,target)=>{let n=cnt(type),tries=0;while(n<target&&tries++<4){const c=randomCellNear(pred,130);if(!c)continue;newVehicleAt(type,col,false,c.gx,c.gz);n++}};
+ let civ=civCount();
+ const spawn=(type,col,pred,target)=>{let n=cnt(type),tries=0;while(n<target&&tries++<4){if(civ>=vehLimit)break;const c=randomCellNear(pred,130);if(!c)continue;newVehicleAt(type,col,false,c.gx,c.gz);n++;civ++}};
  spawn('car',rp(Math.random,CARCOL),c=>c.t===1,Math.max(4,Math.round(Math.min(24,Math.floor(stats.road/14))*(1-Math.min(.45,transitN*.035)))));
  spawn('tractor',0x3e8a3f,c=>c.t===3,Math.min(3,Math.floor(stats.farm/8)));
  spawn('boat',0,c=>c.t===2,Math.min(4,Math.floor(stats.water/40)));
+ let over=civCount()-vehLimit;
+ if(over>0){
+  const civs=vehicles.filter(v=>!v.fleet).sort((a,b)=>Math.hypot(b.x-f.x,b.z-f.z)-Math.hypot(a.x-f.x,a.z-f.z));
+  for(let i=0;i<over&&i<civs.length;i++)removeVehicle(civs[i]);
+ }
  let tries=0;while(peds.length<Math.min(60,Math.floor(stats.road/8))&&tries++<6)spawnPed();
  // one train per rail network, one metro per viaduct
  let railN=0,metroN=0;
@@ -1851,14 +2063,116 @@ function syncTraffic(){
   const dd=Math.hypot((c.gx+.5)*T-f.x,(c.gz+.5)*T-f.z);
   if(dd<bd){bd=dd;best=c}}
   return best};
- if(railN>1&&!vehicles.some(v=>v.type==='train')){const c=lineCell('railline');if(c)newVehicleAt('train',0,false,c.gx,c.gz)}
- if(metroN>1&&!vehicles.some(v=>v.type==='metro')){const c=lineCell('metroline');if(c)newVehicleAt('metro',0,false,c.gx,c.gz)}
+ const trains=vehicles.filter(v=>v.type==='train'),metros=vehicles.filter(v=>v.type==='metro');
+ if(railN<2){for(const v of trains)removeVehicle(v)}
+ else if(trains.length<1){const c=lineCell('railline');if(c)newVehicleAt('train',0,false,c.gx,c.gz)}
+ else if(trains.length>1){for(let i=1;i<trains.length;i++)removeVehicle(trains[i])}
+ if(metroN<2){for(const v of metros)removeVehicle(v)}
+ else if(metros.length<1){const c=lineCell('metroline');if(c)newVehicleAt('metro',0,false,c.gx,c.gz)}
+ else if(metros.length>1){for(let i=1;i<metros.length;i++)removeVehicle(metros[i])}
 }
 
 
 // ===== CIVIC SERVICES: TRAFFIC SIGNALS, POLICE, INCIDENTS, COURTS =====
 const CIV={police:0,court:0,hospital:0,fire:0,factory:0,policeCell:null,courtCell:null,hospitalCell:null,fireCell:null};
-let transitN=0,parkingN=0,utilN=0,leisureN=0,stadiumN=0,devBonus=1,matchT=80;
+let transitN=0,parkingN=0,utilN=0,leisureN=0,stadiumN=0,devBonus=1,matchT=80,trafficPosts=0,govN=0,bizN=0;
+
+// ===== CITY OFFICE: people ask the player for permission =====
+let people=[],requests=[],reqSeq=0,reqTimer=28;
+const SURNAME=['Patra','Mohanty','Das','Sahoo','Nayak','Behera','Rao','Sharma','Panda','Jena'];
+const BIZKIND=['textile shop','sweet shop','hardware store','cyber cafe','grocery mart','mobile shop'];
+function officeName(){return rp(Math.random,NAMES)+' '+rp(Math.random,SURNAME)}
+function freeGrassNear(cx,cz,rad){
+ for(let r=1;r<=rad;r++)for(let a=-r;a<=r;a++)for(let b=-r;b<=r;b++){
+  if(Math.max(Math.abs(a),Math.abs(b))!==r)continue;
+  const c=loadedCell(cx+a,cz+b);
+  if(c&&c.t===0&&!c.b)return {gx:cx+a,gz:cz+b};
+ }
+ return null;
+}
+function freePost(){
+ for(const ch of chunkArr)for(const c of ch.cells){
+  if(c.b&&c.b.kind==='trafficpost'&&!c.b.text)return c;
+ }
+ return null;
+}
+function newRequest(kind){
+ const ci=nearestCity(),nm=officeName();
+ const r={id:++reqSeq,kind,name:nm,city:ci,t0:performance.now()};
+ if(kind==='business'){r.title='open a '+rp(Math.random,BIZKIND);r.cost=1200;}
+ else if(kind==='party'){r.title='open a party office';r.cost=2000;}
+ else {r.title='be posted as a traffic officer';r.cost=600;}
+ requests.push(r);
+ toast(nm+' asks your permission to '+r.title+' — City Office');
+ return r;
+}
+function renderOffice(){
+ const rq=$('office-requests');if(!rq)return;
+ rq.innerHTML=requests.length?requests.map(r=>
+  '<div class="svc-row"><span class="svc-dot" style="background:#b45309"></span><div style="flex:1 1 auto"><b>'+r.name+'</b><br><span class="svc-st">wants to '+r.title+'</span></div>'+
+  '<div style="display:flex;gap:5px"><button class="ui-btn primary" onclick="__approveReq('+r.id+',1)">Allow</button>'+
+  '<button class="ui-btn" onclick="__approveReq('+r.id+',0)">No</button></div></div>').join('')
+  :'<div class="svc-empty">Nobody is waiting for permission right now.</div>';
+ const ps=$('office-posts');
+ if(ps){
+  const posts=[];
+  for(const ch of chunkArr)for(const c of ch.cells)if(c.b&&c.b.kind==='trafficpost')posts.push(c);
+  ps.innerHTML=posts.length?posts.slice(0,12).map(c=>{
+   const has=!!c.b.text;
+   return '<div class="svc-row"><span class="svc-dot" style="background:'+(has?'#15803d':'#b45309')+'"></span>'+
+   '<div style="flex:1 1 auto"><b>'+(has?c.b.text:'Unmanned post')+'</b><br><span class="svc-st">'+(has?'managing traffic':'no officer yet')+'</span></div>'+
+   (has?'<span class="svc-st">on duty</span>':'<button class="ui-btn primary" onclick="__appointPost('+c.gx+','+c.gz+')">Post officer</button>')+'</div>';
+  }).join(''):'<div class="svc-empty">No traffic posts yet — build one from the Transport tools.</div>';
+ }
+ const pp=$('office-people');
+ if(pp){
+  const roleName={traffic:'Traffic officer',leader:'Political leader',business:'Business owner'};
+  pp.innerHTML=people.length?people.map(p=>
+   '<div class="svc-row"><span class="svc-dot" style="background:#0f766e"></span><div><b>'+p.name+'</b><br><span class="svc-st">'+roleName[p.role]+'</span></div></div>').join('')
+   :'<div class="svc-empty">No appointments yet. Allow someone and they appear here.</div>';
+ }
+ const nt=$('office-note');
+ if(nt)nt.textContent='Nobody builds, opens a party office or takes a post without your permission. '+
+  people.filter(p=>p.role==='traffic').length+' officers · '+
+  people.filter(p=>p.role==='leader').length+' leaders · '+
+  people.filter(p=>p.role==='business').length+' businesses approved.';
+}
+window.__approveReq=function(id,ok){
+ const i=requests.findIndex(r=>r.id===id);if(i<0)return;
+ const r=requests[i];requests.splice(i,1);
+ if(!ok){toast('Permission refused — '+r.name+' leaves the office');renderOffice();updateCivicHud();return}
+ if(r.kind==='traffic'){
+  const post=freePost();
+  if(!post){toast('No traffic post needs an officer — build one first');renderOffice();return}
+  post.b.text=r.name;touch(post);sigDirty=true;
+  people.push({name:r.name,role:'traffic'});
+  toast(r.name+' posted as traffic officer');
+ }else{
+  const f=focus();
+  const spot=freeGrassNear(Math.floor(f.x/T),Math.floor(f.z/T),11);
+  if(!spot){toast('No free land for the project');renderOffice();return}
+  if(!spend(r.cost)){renderOffice();return}
+  const c=loadedCell(spot.gx,spot.gz);
+  c.trees=[];c.b=mkB(r.kind==='party'?'party':'business',spot.gx,spot.gz,faceRotG(spot.gx,spot.gz),r.name);
+  startPop(c);touch(c);recalcPop();
+  people.push({name:r.name,role:r.kind==='party'?'leader':'business'});
+  toast((r.kind==='party'?'Party office':'Business')+' opened by '+r.name);
+ }
+ scanCivic();renderOffice();updateCivicHud();
+};
+window.__appointPost=function(gx,gz){
+ const c=loadedCell(gx,gz);
+ if(!c||!c.b||c.b.kind!=='trafficpost')return;
+ if(c.b.text){toast('This post already has an officer');return}
+ if(!spend(600))return;
+ c.b.text=officeName();touch(c);sigDirty=true;
+ people.push({name:c.b.text,role:'traffic'});
+ toast(c.b.text+' posted at this traffic post');
+ renderOffice();
+};
+if(document.getElementById('menu-office'))document.getElementById('menu-office').onclick=()=>{
+ closeMenu();renderOffice();openModal('modal-office');
+};
 let crimeIdx=14,civ={arrests:0,convictions:0,fines:0,crimes:0,fires:0,accidents:0},cases=[],incidents=[],incSeq=0,incTimer=7,lastVerdictToast=0,lastCivScan=0,lastSvcPaint=0;
 const svcModal=document.getElementById('modal-services');
 
@@ -1866,7 +2180,8 @@ const svcModal=document.getElementById('modal-services');
 function isSigCell(gx,gz){
  const c=loadedCell(gx,gz);
  if(!c||!isRoadT(c.t))return false;
- return !!(c.b&&c.b.kind==='signal');   // only where the player put one
+ if(c.b&&c.b.kind==='signal')return true;
+ return !!(c.b&&c.b.kind==='trafficpost'&&c.b.text);   // a post only works when an officer is posted
 }
 const SIG_CYC=16;
 function sigPhaseAt(gx,gz){
@@ -1930,7 +2245,7 @@ function updateSignalColors(){
 
 /* ---------- stations ---------- */
 function scanCivic(){
- const f=focus();let pol=null,cou=null,hos=null,fir=null,fac=0,tr=0,pk=0,ut=0,le=0,st=0;
+ const f=focus();let pol=null,cou=null,hos=null,fir=null,fac=0,tr=0,pk=0,ut=0,le=0,st=0,tp=0,gov=0,bz=0;
  const nearer=(cur,c)=>!cur||Math.hypot(c.b.x-f.x,c.b.z-f.z)<Math.hypot(cur.b.x-f.x,cur.b.z-f.z)?c:cur;
  for(const ch of chunkArr)for(const c of ch.cells){
   const b=c.b;if(!b)continue;
@@ -1944,6 +2259,10 @@ function scanCivic(){
    if(b.kind==='railway'||b.kind==='metro')tr++;
   }
   else if(b.kind==='parking')pk++;
+  else if(b.kind==='trafficpost')tp++;
+  else if(b.kind==='business'){le++;bz++;}
+  else if(b.kind==='parliament'){le+=2;gov++;}
+  else if(b.kind==='party'){le++;gov++;}
   else if(b.kind==='water'||b.kind==='power'||b.kind==='waste')ut++;
   else if(b.kind==='stadium'){st++;le++;}
   else if(b.kind==='mall'||b.kind==='cinema'){le+=2;}
@@ -1951,8 +2270,9 @@ function scanCivic(){
           b.kind==='temple'||b.kind==='mosque'||b.kind==='church'||b.kind==='park'||b.kind==='plaza')le++;
  }
  CIV.police=pol?1:0;CIV.court=cou?1:0;CIV.hospital=hos?1:0;CIV.fire=fir?1:0;CIV.factory=fac;
- transitN=tr;parkingN=pk;utilN=ut;leisureN=le;stadiumN=st;
- devBonus=1+Math.min(.30,tr*.02)+Math.min(.25,ut*.06)+Math.min(.22,le*.012)+Math.min(.10,pk*.02);
+ transitN=tr;parkingN=pk;utilN=ut;leisureN=le;stadiumN=st;trafficPosts=tp;govN=gov;bizN=bz;
+ devBonus=1+Math.min(.30,tr*.02)+Math.min(.25,ut*.06)+Math.min(.22,le*.012)+Math.min(.10,pk*.02)
+  +Math.min(.16,bz*.02)+Math.min(.08,gov*.01);
  CIV.policeCell=pol;CIV.courtCell=cou;CIV.hospitalCell=hos;CIV.fireCell=fir;
  crimeIdx=clamp(12+pop/60-(pol?8:0)-(cou?3:0),2,60);
 }
@@ -2038,7 +2358,9 @@ function freeUnit(type){
  }
  return null;
 }
+function tempUnits(){let n=0;for(const v of vehicles)if(v.temp)n++;return n}
 function makeUnit(type,cell){
+ if(tempUnits()>=6)return null;
  const spot=roadNear(cell.gx,cell.gz,12);if(!spot)return null;
  const v=newVehicleAt(type,FLEET_COL[type],true,spot.gx,spot.gz);
  v.label=(FLEET_LABEL[type]||'Service unit')+' #'+(nameN[type]=(nameN[type]||0)+1);
@@ -2064,11 +2386,12 @@ function routeFor(u,inc){
  return findPath(u.cx,u.cz,stop.gx,stop.gz,u.type,14000);
 }
 function spawnUnitNear(inc,type){
+ if(tempUnits()>=6)return null;
  const spot=roadNear(inc.gx,inc.gz,6);
  if(!spot)return null;
  const v=newVehicleAt(type,FLEET_COL[type],true,spot.gx,spot.gz);
  v.label=(FLEET_LABEL[type]||'Service unit')+' #'+(nameN[type]=(nameN[type]||0)+1);
- v.temp=true;v.urgent=true;v.idleAt=0;
+ v.temp=true;v.urgent=true;v.idleAt=performance.now();
  return v;
 }
 function dispatchFor(inc){
@@ -2137,6 +2460,8 @@ function updateCivicHud(){
  }
  const badge=$('svc-badge');
  if(badge){const b=String(incidents.length);if(b!==lastBadgeTxt){lastBadgeTxt=b;badge.textContent=b}}
+ const ob=$('office-badge');
+ if(ob){const t=String(requests.length);if(ob.textContent!==t)ob.textContent=t}
 }
 function renderServices(){
  const g=$('svc-grid');if(!g)return;
@@ -2154,6 +2479,9 @@ function renderServices(){
   card('Utilities',utilN,utilN?'water / power / waste':'none yet'),
   card('Leisure',leisureN,leisureN?'':'parks, malls, stadium'),
   card('Parking',parkingN,parkingN?'lots':'no parking'),
+  card('Traffic posts',trafficPosts,trafficPosts?'officers on duty':'none yet'),
+  card('Government',govN,govN?'in session':'no house yet'),
+  card('Businesses',bizN,bizN?'approved':'none yet'),
   card('City bonus','+'+(Math.round((devBonus-1)*1000)/10)+'%','on all income')
  ].join('');
  const list=$('svc-incidents');
@@ -2231,8 +2559,16 @@ function civicFrame(dt,now){
 
  for(const v of vehicles.slice()){
   if(!v.temp)continue;
-  if(Math.hypot(v.x-f.x,v.z-f.z)>200)removeVehicle(v);
-  else if(!v.dest&&v.idleAt&&now-v.idleAt>26000)removeVehicle(v);
+  if(Math.hypot(v.x-f.x,v.z-f.z)>200){removeVehicle(v);continue}
+  if(!v.dest){
+   if(!v.idleAt)v.idleAt=now;
+   if(now-v.idleAt>20000)removeVehicle(v);
+  }else v.idleAt=0;
+ }
+ let temps=[];for(const v of vehicles)if(v.temp)temps.push(v);
+ if(temps.length>8){
+  temps.sort((a,b)=>(a.idleAt||0)-(b.idleAt||0));
+  for(let i=0;i<temps.length-8;i++)removeVehicle(temps[i]);
  }
 
  if(stadiumN>0){
@@ -2243,6 +2579,11 @@ function civicFrame(dt,now){
    cash+=gate;updateHud();
    toast('Match day at the stadium — gate receipts +$'+gate.toLocaleString('en-US'));
   }
+ }
+ reqTimer-=dt;
+ if(reqTimer<=0){
+  reqTimer=42+Math.random()*30;
+  if(requests.length<3&&pop>0&&chunkArr.length>4)newRequest(rp(Math.random,['business','business','party','traffic']));
  }
  if(now-lastSvcPaint>800){lastSvcPaint=now;if(svcModal&&svcModal.classList.contains('open'))renderServices()}
  updateCivicHud();
@@ -2262,7 +2603,7 @@ function touch(c){
  markDirty(c.gx,c.gz);instDirty=true;scheduleSave();
 }
 let popDirty=true,lastPop=0;
-function recalcPop(){popDirty=false;lastPop=performance.now();let p=0;for(const ch of chunkArr)for(const c of ch.cells)if(c.b)p+=c.b.pop;pop=p;updateHud()}
+function recalcPop(){popDirty=false;lastPop=performance.now();let p=0;for(const ch of chunkArr)for(const c of ch.cells)if(c.b)p+=c.b.pop;pop=popLimit>0?Math.min(p,popLimit):p;updateHud()}
 function spend(n){if(cash<n){toast('Not enough cash');return false}cash-=n;updateHud();return true}
 const hasRoadNear=(gx,gz)=>{for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++)if(isRoadT(tPeek(gx+a,gz+b)))return true;return false};
 function startPop(c){
@@ -2300,6 +2641,26 @@ function applyOne(id,gx,gz){
   if(c.t===2){toast('Metro needs ground or a road below');return false}
   if(!spend(320))return false;
   c.b=mkB('metroline',gx,gz,0,'');c.trees=[];touch(c);toast('Metro viaduct built — it runs above the road');return true;
+ }
+ if(id==='trafficpost'){
+  if(c.t!==1){toast('Traffic posts go on a road tile');return false}
+  if(c.b){toast('That road tile is busy');return false}
+  if(!spend(400))return false;
+  c.b=mkB('trafficpost',gx,gz,0,'');touch(c);sigDirty=true;toast('Traffic post built — an officer manages this junction');
+  return true;
+ }
+ if(id==='railtunnel'||id==='metrotunnel'){
+  if(c.t!==9){toast('Tunnels are bored through rocky hills');return false}
+  if(c.b){toast('That hill already has a tunnel');return false}
+  const cost=id==='railtunnel'?600:900;
+  if(!spend(cost))return false;
+  c.b=mkB(id,gx,gz,0,'');touch(c);toast(id==='railtunnel'?'Railway tunnel bored':'Metro tunnel bored');
+  return true;
+ }
+ if(id==='cutter'){
+  if(c.t!==9){toast('Nothing to cut here');return false}
+  c.t=0;c.trees=[];touch(c);toast('Rock cut away — the land is buildable now');
+  return true;
  }
  if(id==='signal'){
   if(c.t!==1){toast('Traffic signals go on a road tile');return false}
@@ -2351,7 +2712,7 @@ function markChain(){if(chain){const p=cc(chain.gx,chain.gz);chMesh.position.x=p
 // ===== SAVE / LOAD =====
 function saveNow(){try{
  localStorage.setItem('cityrt4_edits',JSON.stringify([...edits]));
- localStorage.setItem('cityrt4_meta',JSON.stringify({cash:Math.floor(cash),tx,tz,yaw,pitch,dist,civ:civ,crime:crimeIdx,fleet:vehicles.filter(v=>v.fleet).map(v=>v.type)}));
+ localStorage.setItem('cityrt4_meta',JSON.stringify({cash:Math.floor(cash),tx,tz,yaw,pitch,dist,civ:civ,crime:crimeIdx,veh:vehLimit,fleet:vehicles.filter(v=>v.fleet).map(v=>v.type)}));
 }catch(e){}}
 function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(saveNow,1500)}
 addEventListener('pagehide',saveNow);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveNow()});
@@ -2359,7 +2720,8 @@ setInterval(saveNow,30000);
 
 // ===== UI =====
 function toast(m){const b=$('status-banner');b.textContent=m;b.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>b.classList.remove('show'),2600)}
-function updateHud(){$('hud-cash').textContent='$'+Math.floor(cash).toLocaleString('en-US');$('hud-pop').textContent=pop.toLocaleString('en-US');updateCivicHud()}
+function updateHud(){$('hud-cash').textContent='$'+Math.floor(cash).toLocaleString('en-US');
+ $('hud-pop').textContent=popLimit>0?pop+'/'+popLimit:pop.toLocaleString('en-US');updateCivicHud()}
 function renderTabs(){
  $('category-tabs').innerHTML=CATS.map(c=>`<button class="cat-tab ${c[1]===catKey?'active':''}">${c[0]}</button>`).join('');
  $('category-tabs').querySelectorAll('.cat-tab').forEach((b,i)=>b.onclick=()=>{catKey=CATS[i][1];renderTabs();renderDock()});
@@ -2436,6 +2798,46 @@ $('menu-cities').onclick=()=>{closeMenu();renderCities();openModal('modal-cities
 $('menu-fleet').onclick=()=>{closeMenu();renderFleet();openModal('modal-fleet')};
 let topView=false,tx=0,tz=0,yaw=.6,pitch=.95,dist=75;
 $('menu-cam-toggle').onclick=()=>{topView=!topView;pitch=topView?1.4:.95;$('cam-mode-badge').textContent=topView?'TOP VIEW':'3D VIEW'};
+const vehIn=$('veh-limit'),vehBtn=$('veh-apply'),vehOut=$('veh-count');
+const popIn=$('pop-limit'),popBtn=$('pop-apply'),popOut=$('pop-count'),rulesLbl=$('rules-city');
+const cityRules={};let curCity=-2,rulesLoaded=false;
+function cityName(ci){return ci>=0?cityInfo(ci).name:'Open country'}
+function saveRules(){try{localStorage.setItem('cityrt4_rules',JSON.stringify(cityRules))}catch(e){}}
+function updateVehCount(){
+ if(vehOut)vehOut.textContent=civCount()+' / '+vehLimit+' vehicles';
+ if(popOut)popOut.textContent=popLimit>0?(pop+' / '+popLimit+' residents'):(pop+' residents · no limit');
+}
+function loadCityRules(force){
+ if(!rulesLoaded){
+  rulesLoaded=true;
+  try{const s=localStorage.getItem('cityrt4_rules');if(s)Object.assign(cityRules,JSON.parse(s))}catch(e){}
+ }
+ const ci=nearestCity();
+ if(ci===curCity&&!force)return;
+ curCity=ci;
+ const r=cityRules[ci]||{veh:24,pop:0};
+ vehLimit=clamp(Math.round(r.veh)||0,0,200);
+ popLimit=clamp(Math.round(r.pop)||0,0,100000);
+ if(vehIn)vehIn.value=vehLimit;
+ if(popIn)popIn.value=popLimit;
+ if(rulesLbl)rulesLbl.textContent='City rules · '+cityName(ci);
+ popDirty=true;recalcPop();updateVehCount();
+}
+if(vehIn)vehIn.value=vehLimit;
+if(vehBtn)vehBtn.onclick=()=>{
+ const n=clamp(Math.round(Number(vehIn.value)||0),0,200);
+ vehLimit=n;
+ cityRules[curCity]=Object.assign({},cityRules[curCity],{veh:n});
+ if(vehIn)vehIn.value=n;updateVehCount();saveRules();
+ toast(cityName(curCity)+': at most '+n+' vehicles on the road');
+};
+if(popBtn)popBtn.onclick=()=>{
+ const n=clamp(Math.round(Number(popIn.value)||0),0,100000);
+ popLimit=n;
+ cityRules[curCity]=Object.assign({},cityRules[curCity],{pop:n});
+ if(popIn)popIn.value=n;popDirty=true;recalcPop();updateVehCount();saveRules();
+ toast(cityName(curCity)+': population limit '+(n>0?n:'none'));
+};
 $('menu-zoom-in').onclick=()=>{dist=clamp(dist*.8,14,130)};$('menu-zoom-out').onclick=()=>{dist=clamp(dist*1.25,14,130)};
 $('menu-cam-reset').onclick=()=>{yaw=.6;pitch=.95;dist=75;topView=false;$('cam-mode-badge').textContent='3D VIEW'};
 function setQuality(hq){
@@ -2552,7 +2954,7 @@ function frameBody(now){
   const wgx=Math.floor(walk.x/T),wgz=Math.floor(walk.z/T);let nb=null;
   for(let a=-1;a<=1&&!nb;a++)for(let b=-1;b<=1;b++){
    const c=loadedCell(wgx+a,wgz+b);
-   if(c&&c.b&&!['turbine','park','plaza','wall','gate','signal','railline','metroline'].includes(c.b.kind)&&Math.hypot(c.b.x-walk.x,c.b.z-walk.z)<3.8){nb=c.b;break}
+   if(c&&c.b&&!['turbine','park','plaza','wall','gate','signal','railline','metroline','trafficpost','railtunnel','metrotunnel'].includes(c.b.kind)&&Math.hypot(c.b.x-walk.x,c.b.z-walk.z)<3.8){nb=c.b;break}
   }
   const curB=walk.near?walk.near.b:null;
   if(curB!==nb){
@@ -2571,7 +2973,7 @@ function frameBody(now){
    if(instDirty&&now-lastInst>140){rebuildInst();lastInst=now}
  if(now-lastTraf>1000){syncTraffic();lastTraf=now}
  civicFrame(dt,now);
- if(now-lastHud>600){lastHud=now;$('hud-city').textContent=hudCity();if(popDirty||now-lastPop>2000)recalcPop()}
+ if(now-lastHud>600){lastHud=now;$('hud-city').textContent=hudCity();if(popDirty||now-lastPop>2000)recalcPop();loadCityRules();updateVehCount()}
 
  // vehicles
  for(const v of vehicles){
@@ -2637,6 +3039,20 @@ function frameBody(now){
   const w=Math.sin(ts*10+b.ph)*.6;b.wl.rotation.z=w;b.wr.rotation.z=-w;
  }
  for(const ch of chunkArr)for(const r of ch.rotors)r.rotation.z+=dt*1.4;
+ if(gateArms.length){
+  for(const g of gateArms){
+   let near=1e9;
+   for(const v of vehicles){
+    if(v.type!=='train'&&v.type!=='metro')continue;
+    const dd=Math.hypot(v.x-g.arm.parent.position.x,v.z-g.arm.parent.position.z);
+    if(dd<near)near=dd;
+   }
+   const st=gateState.get(ekey(g.gx,g.gz));
+   const want=near<11?1:0;
+   if(st){st.frac+=(want-st.frac)*Math.min(1,dt*3.2);if(Math.abs(want-st.frac)<.02)st.frac=want}
+   g.arm.rotation.x=-(st?st.frac:0)*1.35;
+  }
+ }
 
  // camera
  if(walk.on){
@@ -2671,10 +3087,12 @@ renderTabs();renderDock();updateHud();
  if(meta&&isFinite(meta.tx)&&isFinite(meta.tz)){
   cash=meta.cash||cash;tx=meta.tx;tz=meta.tz;yaw=meta.yaw||yaw;pitch=meta.pitch||pitch;dist=clamp(meta.dist||75,14,130);
   if(meta.civ)Object.assign(civ,meta.civ);if(isFinite(meta.crime))crimeIdx=meta.crime;
+  if(isFinite(meta.veh))vehLimit=clamp(meta.veh,0,200);
   pendingFleet=(meta.fleet&&meta.fleet.length)?meta.fleet.slice():['bus','ambulance','firetruck'];
  }else{
   const c=cityInfo(2);tx=(c.mx+.5)*T;tz=(c.mz+.5)*T;pendingFleet=['bus','ambulance','firetruck'];
  }
+ loadCityRules(true);
  updateHud();toast('Welcome to Bhubaneswar — build your city! Two-finger drag to scroll, pinch to zoom');
 }
 let __ferr=0;
