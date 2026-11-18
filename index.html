@@ -2358,9 +2358,9 @@ function freeUnit(type){
  }
  return null;
 }
-function tempUnits(){let n=0;for(const v of vehicles)if(v.temp)n++;return n}
+function tempUnits(type){let n=0;for(const v of vehicles)if(v.temp&&(!type||v.type===type))n++;return n}
 function makeUnit(type,cell){
- if(tempUnits()>=6)return null;
+ if(tempUnits()>=4||tempUnits(type)>=2)return null;   // small, balanced service fleet
  const spot=roadNear(cell.gx,cell.gz,12);if(!spot)return null;
  const v=newVehicleAt(type,FLEET_COL[type],true,spot.gx,spot.gz);
  v.label=(FLEET_LABEL[type]||'Service unit')+' #'+(nameN[type]=(nameN[type]||0)+1);
@@ -2386,7 +2386,7 @@ function routeFor(u,inc){
  return findPath(u.cx,u.cz,stop.gx,stop.gz,u.type,14000);
 }
 function spawnUnitNear(inc,type){
- if(tempUnits()>=6)return null;
+ if(tempUnits()>=4||tempUnits(type)>=2)return null;
  const spot=roadNear(inc.gx,inc.gz,6);
  if(!spot)return null;
  const v=newVehicleAt(type,FLEET_COL[type],true,spot.gx,spot.gz);
@@ -2511,11 +2511,11 @@ function civicFrame(dt,now){
  incTimer-=dt;
  if(incTimer<=0){
   incTimer=13+Math.random()*10;
-  if(incidents.length<6&&pop>0){
+  if(incidents.length<4&&pop>0&&tempUnits()<3){
    const pool=[];
-   if(pop>8)pool.push(['crime',clamp(crimeIdx/95,.05,.55)]);
-   if(CIV.factory>0)pool.push(['fire',.16]);
-   if(stats.road>40&&vehicles.length>5)pool.push(['accident',.18]);
+   if(pop>8)pool.push(['crime',clamp(crimeIdx/95,.12,.45)]);
+   if(CIV.factory>0)pool.push(['fire',.09]);
+   if(stats.road>40&&vehicles.length>5)pool.push(['accident',.13]);
    let tot=0;for(const p of pool)tot+=p[1];
    if(tot>0){
     let rr=Math.random()*tot,type='crime';
@@ -2557,18 +2557,30 @@ function civicFrame(dt,now){
   }
  }
 
+ // service fleet stays tiny: 4 units, 2 of each kind, gone 15 s after the job
  for(const v of vehicles.slice()){
   if(!v.temp)continue;
   if(Math.hypot(v.x-f.x,v.z-f.z)>200){removeVehicle(v);continue}
   if(!v.dest){
    if(!v.idleAt)v.idleAt=now;
-   if(now-v.idleAt>20000)removeVehicle(v);
+   if(now-v.idleAt>15000)removeVehicle(v);
   }else v.idleAt=0;
  }
  let temps=[];for(const v of vehicles)if(v.temp)temps.push(v);
- if(temps.length>8){
+ if(temps.length>4){
   temps.sort((a,b)=>(a.idleAt||0)-(b.idleAt||0));
-  for(let i=0;i<temps.length-8;i++)removeVehicle(temps[i]);
+  for(let i=0;i<temps.length-4;i++)removeVehicle(temps[i]);
+ }
+ // hard ceiling: city rule + a small allowance for emergency units
+ const capTotal=vehLimit+6;
+ if(vehicles.length>capTotal){
+  const extra=vehicles.slice().sort((a,b)=>Math.hypot(b.x-f.x,b.z-f.z)-Math.hypot(a.x-f.x,a.z-f.z));
+  let kill=vehicles.length-capTotal;
+  for(const v of extra){
+   if(kill<=0)break;
+   if(v.type==='train'||v.type==='metro')continue;
+   removeVehicle(v);kill--;
+  }
  }
 
  if(stadiumN>0){
@@ -2748,7 +2760,7 @@ window.flyTo=i=>{
  setTimeout(()=>{for(const v of vehicles.filter(v=>v.fleet)){v.x=tx;v.z=tz;v.mode='auto';snapToPassable(v)}},900);
 };
 function renderFleet(){
- const f=vehicles.filter(v=>v.fleet);$('fleet-badge').textContent=f.length;
+ const f=vehicles.filter(v=>v.fleet&&!v.temp);$('fleet-badge').textContent=f.length;
  $('fleet-list').innerHTML=f.length?f.map(v=>`<div class="fleet-row"><div><b>${v.label}</b><br><span style="color:#57606a;">Driver: ${v.driver} · ${v.mode==='parked'?'Parked':v.mode==='manual'?'Driving':'Patrolling'}</span></div><div style="display:flex;gap:6px;"><button class="ui-btn" onclick="fleetAct(${v.id},'toggle')">${v.mode==='parked'?'Patrol':'Park'}</button><button class="ui-btn primary" onclick="fleetAct(${v.id},'drive')">Drive</button></div></div>`).join(''):'<div style="font-size:12px;color:#57606a;">No fleet vehicles yet. Buy one above.</div>';
 }
 window.buyVehicle=type=>{
