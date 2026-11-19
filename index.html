@@ -482,6 +482,12 @@
         <button class="dd-mini-btn" id="pop-apply">Set</button>
       </div>
       <div class="dd-rule-note" id="pop-count">0 residents · no limit</div>
+      <div class="dd-rule">
+        <span class="dd-rule-lbl">Income tax %</span>
+        <input id="tax-rate" class="dd-num" type="number" min="0" max="40" step="1" value="10" inputmode="numeric" />
+        <button class="dd-mini-btn" id="tax-apply">Set</button>
+      </div>
+      <div class="dd-rule-note" id="tax-count">Tax collected $0</div>
       <div class="dd-zoom-grid">
         <button class="dd-mini-btn" id="menu-zoom-in">Zoom +</button>
         <button class="dd-mini-btn" id="menu-zoom-out">Zoom -</button>
@@ -675,6 +681,8 @@ const IC={
  trafficpost:['#0f766e','<rect x="4" y="8" width="9" height="12" rx="1"/><path d="M8.5 8V5h4M6 12h5M6 16h5"/><circle cx="18" cy="6" r="2"/>'],
  parliament:['#7c2d12','<path d="M3 21h18M4 21V11l8-5 8 5v10M8 21v-6M12 21v-6M16 21v-6"/><path d="M12 2v4"/>'],
  party:['#b45309','<rect x="4" y="9" width="16" height="12" rx="1"/><path d="M4 13h16M9 21v-5h6v5"/><path d="M12 9V4h6l-2 2 2 2h-6"/>'],
+ bikeshowroom:['#0f766e','<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-6h5l3 6M9 11h6"/>'],
+ carshowroom:['#1d4ed8','<path d="M3 17h18M5 17V12l2-4h10l2 4v5"/><circle cx="7.5" cy="17" r="1.6"/><circle cx="16.5" cy="17" r="1.6"/>'],
  business:['#b45309','<path d="M4 9h16v11H4z"/><path d="M4 9l2-5h12l2 5M9 20v-6h6v6"/><path d="M3 9h18"/>'],
  cutter:['#78716c','<path d="M4 20l7-7M20 20l-7-7"/><circle cx="12" cy="9" r="4"/><path d="M12 5V2"/>'],
  railtunnel:['#4a5568','<path d="M4 21V11a8 8 0 0 1 16 0v10"/><path d="M8 21v-6a4 4 0 0 1 8 0v6"/><path d="M3 3l3 3M21 3l-3 3"/>'],
@@ -691,12 +699,12 @@ const TOOLS=[
  {id:'factory',n:'Factory',cost:3500,k:'i'},{id:'turbine',n:'Wind Turbine',cost:2800,k:'i'},{id:'farm',n:'Farmland',cost:150,k:'i'},{id:'barn',n:'Red Barn',cost:900,k:'i'},{id:'silo',n:'Grain Silo',cost:700,k:'i'},
  {id:'hospital',n:'Hospital',cost:7000,k:'s'},{id:'fire',n:'Fire Station',cost:4500,k:'s'},{id:'school',n:'School',cost:3800,k:'s'},{id:'police',n:'Police Station',cost:6500,k:'s'},{id:'court',n:'Court House',cost:9000,k:'s'},{id:'busstand',n:'Bus Stand',cost:2600,k:'t'},{id:'busstop',n:'Bus Stop',cost:250,k:'t'},{id:'railway',n:'Railway Station',cost:12000,k:'t'},{id:'rail',n:'Railway Track',cost:90,k:'t'},
  {id:'metro',n:'Metro Station',cost:9000,k:'t'},{id:'metroline',n:'Metro Viaduct',cost:320,k:'t'},
- {id:'trafficpost',n:'Traffic Post',cost:400,k:'t'},{id:'railtunnel',n:'Railway Tunnel',cost:600,k:'t'},{id:'metrotunnel',n:'Metro Tunnel',cost:900,k:'t'},{id:'parking',n:'Parking Lot',cost:900,k:'t'},{id:'petrol',n:'Petrol Pump',cost:1400,k:'t'},{id:'ev',n:'EV Charging',cost:2200,k:'t'},{id:'stadium',n:'Stadium',cost:18000,k:'l'},{id:'mall',n:'Shopping Mall',cost:9500,k:'l'},{id:'cinema',n:'Cinema Hall',cost:6000,k:'l'},{id:'library',n:'Library',cost:3400,k:'l'},{id:'museum',n:'Museum',cost:6500,k:'l'},{id:'playground',n:'Playground',cost:700,k:'l'},{id:'post',n:'Post Office',cost:1800,k:'l'},{id:'bank',n:'Bank',cost:3000,k:'l'},{id:'temple',n:'Temple',cost:2400,k:'l'},{id:'mosque',n:'Mosque',cost:3200,k:'l'},{id:'church',n:'Church',cost:3200,k:'l'},{id:'parliament',n:'Government House',cost:25000,k:'l'},{id:'party',n:'Party Office',cost:4000,k:'l'},{id:'business',n:'Business House',cost:3500,k:'l'},
+ {id:'trafficpost',n:'Traffic Post',cost:400,k:'t'},{id:'railtunnel',n:'Railway Tunnel',cost:600,k:'t'},{id:'metrotunnel',n:'Metro Tunnel',cost:900,k:'t'},{id:'parking',n:'Parking Lot',cost:900,k:'t'},{id:'petrol',n:'Petrol Pump',cost:1400,k:'t'},{id:'ev',n:'EV Charging',cost:2200,k:'t'},{id:'stadium',n:'Stadium',cost:18000,k:'l'},{id:'mall',n:'Shopping Mall',cost:9500,k:'l'},{id:'cinema',n:'Cinema Hall',cost:6000,k:'l'},{id:'library',n:'Library',cost:3400,k:'l'},{id:'museum',n:'Museum',cost:6500,k:'l'},{id:'playground',n:'Playground',cost:700,k:'l'},{id:'post',n:'Post Office',cost:1800,k:'l'},{id:'bank',n:'Bank',cost:3000,k:'l'},{id:'temple',n:'Temple',cost:2400,k:'l'},{id:'mosque',n:'Mosque',cost:3200,k:'l'},{id:'church',n:'Church',cost:3200,k:'l'},{id:'parliament',n:'Government House',cost:25000,k:'l'},{id:'party',n:'Party Office',cost:4000,k:'l'},{id:'business',n:'Business House',cost:3500,k:'l'},{id:'bikeshowroom',n:'Bike Showroom',cost:4200,k:'l'},{id:'carshowroom',n:'Car Showroom',cost:7500,k:'l'},
  {id:'water',n:'Water Tower',cost:2800,k:'u'},{id:'power',n:'Power Substation',cost:4200,k:'u'},{id:'waste',n:'Waste Plant',cost:3600,k:'u'},
  {id:'tree',n:'Trees',cost:30,k:'p'},{id:'park',n:'Park',cost:400,k:'p'},{id:'plaza',n:'Fountain Plaza',cost:600,k:'p'}
 ];
 const LABEL={house:'House',villa:'Villa',apartment:'Apartment block',office:'Limestone office',tower:'Clock tower',dome:'Dome hall',factory:'Factory',turbine:'Wind turbine',barn:'Red barn',silo:'Grain silo',hospital:'Hospital',fire:'Fire station',school:'School',park:'Park',plaza:'Fountain plaza',wall:'Boundary wall',gate:'Entry gate',signal:'Traffic signal',police:'Police station',court:'Court house',busstand:'Bus stand',busstop:'Bus stop',railway:'Railway station',rail:'Railway track',metro:'Metro station',metroline:'Metro viaduct',trafficpost:'Traffic post',railtunnel:'Railway tunnel',metrotunnel:'Metro tunnel',
- parliament:'Government house',party:'Party office',business:'Business house',cutter:'Rock cutter',hill:'Rocky hill',parking:'Parking lot',petrol:'Petrol pump',ev:'EV charging hub',stadium:'Stadium',mall:'Shopping mall',cinema:'Cinema hall',library:'Library',museum:'Museum',playground:'Playground',post:'Post office',bank:'Bank',temple:'Temple',mosque:'Mosque',church:'Church',water:'Water tower',power:'Power substation',waste:'Waste plant'};
+ parliament:'Government house',party:'Party office',business:'Business house',bikeshowroom:'Bike showroom',carshowroom:'Car showroom',cutter:'Rock cutter',hill:'Rocky hill',parking:'Parking lot',petrol:'Petrol pump',ev:'EV charging hub',stadium:'Stadium',mall:'Shopping mall',cinema:'Cinema hall',library:'Library',museum:'Museum',playground:'Playground',post:'Post office',bank:'Bank',temple:'Temple',mosque:'Mosque',church:'Church',water:'Water tower',power:'Power substation',waste:'Waste plant'};
 const POP={house:4,villa:7,apartment:20};
 const THEMES={
  temperate:{wall:[0xf0e2c3,0xe8d3a8,0xd9b98a,0xf3ead7,0xe6c4a0,0xcfd8c0,0xc9d6e0,0xf2cfa0],roof:[0xc4572f,0xb84a2a,0xa8452b,0xcf6a3a,0x8f3d2b],flat:false,grass:0x7f9f55,conf:.25,tree:[0x7fae45,0x8fc24f,0x6c9e3b,0x9cc858,0x5f9440,0xb8d060,0xe0a050,0xe88f8f],con:[0x3f7a4a,0x4a8a52,0x356b43]},
@@ -1319,16 +1327,29 @@ B.ev=(mb,r,th,o)=>{
  mb.add('box',0,.05,.95,.55,.02,.55,0x22c55e,{noEdge:true});
 };
 B.stadium=(mb,r,th,o)=>{
+ // a real stadium: much wider and taller than an ordinary building
  o.wall=0xd8d0c0;
- mb.add('cyl',0,0,0,1.45,.55,1.45,0xd8d0c0);
- mb.add('cyl',0,.55,0,1.2,.06,1.2,0x8fbf7a,{noEdge:true});
- mb.add('cyl',0,.5,0,1.42,.06,1.42,0xb9573b,{noEdge:true});
- mb.add('cyl',0,.02,0,1.18,.03,1.18,0x8fbf7a,{noEdge:true});
- mb.add('box',0,.05,-1.05,.5,.02,.16,0xf1f1ee,{noEdge:true});mb.add('box',0,.05,1.05,.5,.02,.16,0xf1f1ee,{noEdge:true});
- for(const a of[0,Math.PI/2,Math.PI,Math.PI*1.5]){
-  const x=Math.sin(a)*1.3,z=Math.cos(a)*1.3;
-  mb.add('cyl',x,.55,z,.04,.95,.04,0xcfd3d8,{noEdge:true});
-  mb.add('box',x,1.5,z,.32,.1,.08,0xfff2c0,{glass:true});
+ mb.add('cyl',0,0,0,3.35,.55,3.35,0xb9b2a4);              // outer plinth
+ mb.add('cyl',0,.55,0,3.15,.85,3.15,0xd8d0c0);             // lower stand
+ mb.add('cyl',0,1.4,0,2.85,.7,2.85,0xc9c2b4);              // upper stand
+ mb.add('cyl',0,2.1,0,2.5,.28,2.5,0xb9573b);               // terracotta rim
+ mb.add('cyl',0,.6,0,2.2,.05,2.2,0x8fbf7a,{noEdge:true});  // pitch
+ mb.add('cyl',0,.62,0,1.0,.04,1.0,0xa8cf92,{noEdge:true}); // inner pitch
+ // pitch markings
+ for(const s of[-1,1])mb.add('box',0,.66,s*.9,1.6,.02,.08,0xf4f4f2,{noEdge:true});
+ mb.add('cyl',0,.66,0,.55,.02,.55,0xf4f4f2,{noEdge:true});
+ // roof ring on pillars
+ for(let i=0;i<10;i++){
+  const a=i/10*6.283;
+  mb.add('cyl',Math.sin(a)*3.0,1.6,Math.cos(a)*3.0,.07,1.5,.07,0xcfd3d8,{noEdge:true});
+ }
+ mb.add('cyl',0,3.1,0,3.1,.16,3.1,0xe3e8ed);
+ mb.add('cyl',0,3.26,0,2.4,.06,2.4,0x8fbf7a,{noEdge:true});
+ // eight floodlight towers
+ for(let i=0;i<8;i++){
+  const a=i/8*6.283,x=Math.sin(a)*3.3,z=Math.cos(a)*3.3;
+  mb.add('cyl',x,.55,z,.06,3.1,.06,0xcfd3d8,{noEdge:true});
+  mb.add('box',x,3.65,z,.42,.16,.1,0xfff2c0,{glass:true});
  }
 };
 B.library=(mb,r,th,o)=>{
@@ -1481,18 +1502,21 @@ B.metroline=(mb,r,th,o)=>{o.wall=0xc4cad0};
 B.railtunnel=(mb,r,th,o)=>{o.wall=0x8f8578};
 B.metrotunnel=(mb,r,th,o)=>{o.wall=0x8f8578};
 B.trafficpost=(mb,r,th,o)=>{
+ // kept on the kerb (x +1.05) so cars drive past it, never through it
  o.wall=0xf4f1ea;
- mb.add('box',0,0,0,1.5,.06,1.5,0x9aa0a6,{noEdge:true});
- mb.add('box',-.35,0,-.35,.9,1.15,.9,0xf4f1ea);
- mb.add('box',-.35,1.15,-.35,1.0,.1,1.0,0x2f6f9f);
- mb.add('box',-.35,.55,.1,.6,.4,.04,0x8fbfdc,{glass:true});
- mb.add('cyl',.55,0,.45,.04,1.5,.04,0xcfd3d8,{noEdge:true});
- mb.add('box',.55,1.5,.45,.5,.3,.04,0x2f6f9f);
- mb.add('cyl',.45,0,-.5,.13,.75,.13,0xb8a06a);
- mb.add('box',.45,.75,-.5,.26,.5,.18,0x8a7a4a);
- mb.add('box',.45,1.25,-.5,.2,.2,.18,0xf1c9a5);
- mb.add('box',.45,1.45,-.5,.24,.06,.22,0xf4f4f2,{noEdge:true});
- mb.add('box',.58,1.1,-.5,.06,.34,.06,0xf1c9a5,{rz:-.5});
+ const X=1.05;
+ mb.add('box',X,0,0,.55,.06,1.5,0x9aa0a6,{noEdge:true});
+ mb.add('box',X,0,-.45,.9,1.15,.9,0xf4f1ea);
+ mb.add('box',X,1.15,-.45,1.0,.1,1.0,0x2f6f9f);
+ mb.add('box',X-.45,.55,-.4,.04,.4,.6,0x8fbfdc,{glass:true});
+ mb.add('cyl',X,0,.55,.04,1.5,.04,0xcfd3d8,{noEdge:true});
+ mb.add('box',X,1.5,.55,.5,.3,.04,0x2f6f9f);
+ // the officer on duty, standing at the kerb with a raised hand
+ mb.add('cyl',X-.05,0,.15,.15,.8,.15,0xb8a06a);
+ mb.add('box',X-.05,.8,.15,.3,.55,.2,0x8a7a4a);
+ mb.add('box',X-.05,1.35,.15,.24,.24,.2,0xf1c9a5);
+ mb.add('box',X-.05,1.58,.15,.28,.07,.26,0xf4f4f2,{noEdge:true});
+ mb.add('box',X+.12,1.15,.15,.07,.38,.07,0xf1c9a5,{rz:-.55});
 };
 B.parliament=(mb,r,th,o)=>{
  o.wall=0xece5d4;
@@ -1506,6 +1530,26 @@ B.parliament=(mb,r,th,o)=>{
  mb.add('box',0,.6,.74,1.2,.18,.24,0xd8cfba);
  mb.add('cyl',0,3.34,-.1,.07,.8,.07,0xd8b24a,{noEdge:true});
  mb.add('box',0,4.1,-.1,.5,.3,.06,0xe0702a,{glass:true});
+};
+B.bikeshowroom=(mb,r,th,o)=>{
+ o.wall=0xe8eef2;
+ mb.add('box',0,0,0,2.4,.1,2.0,0x8f959b,{noEdge:true});
+ mb.add('box',0,.1,-.35,2.2,1.3,1.3,0xe8eef2);
+ mb.add('box',0,1.4,-.35,2.3,.14,1.4,0x2f6f9f);
+ mb.add('box',0,.15,.62,2.2,.02,1.0,0x9aa0a6,{noEdge:true});
+ for(const x of[-.55,.55]){mb.add('cyl',x,.17,.62,.28,.16,.28,0x1b1d21);mb.add('cyl',x-.0,.2,.62,.24,.12,.24,0x9aa0a6,{noEdge:true})}
+ mb.add('box',0,.9,.32,1.8,.5,.05,0x8fbfdc,{glass:true});
+ mb.add('box',0,1.58,-.35,1.6,.3,.06,0xd9534f,{glass:true});
+};
+B.carshowroom=(mb,r,th,o)=>{
+ o.wall=0xeef2f6;
+ mb.add('box',0,0,0,2.6,.1,2.2,0x8f959b,{noEdge:true});
+ mb.add('box',0,.1,-.4,2.4,1.5,1.5,0xeef2f6);
+ mb.add('box',0,1.6,-.4,2.5,.14,1.6,0x2f6f9f);
+ mb.add('box',0,.15,.72,2.4,.02,1.1,0x9aa0a6,{noEdge:true});
+ for(const x of[-.7,.1]){mb.add('box',x,.18,.72,.5,.2,1.0,0xd9534f);mb.add('box',x,.38,.68,.46,.14,.5,0x31485f)}
+ mb.add('box',0,1.0,.32,2.0,.6,.05,0x8fbfdc,{glass:true});
+ mb.add('box',0,1.78,-.4,1.8,.3,.06,0x2f6f9f,{glass:true});
 };
 B.business=(mb,r,th,o)=>{
  o.wall=0xe9e3d6;
@@ -1606,14 +1650,24 @@ function metroMB(mask){
 const HILLMB=[];
 function hillMB(v){
  if(HILLMB[v])return HILLMB[v];
- const mb=new MB(),r=rng32(1000+v*77),rock=0x8f8578,rock2=0x7d7468;
- for(let i=0;i<3;i++){
-  const s=.9+r()*.5,x=(r()-.5)*1.1,z=(r()-.5)*1.1,h=1.1+r()*1.5;
-  mb.add('ico',x,h*.42,z,s*.55,h*.5,s*.55,i%2?rock2:rock,{noEdge:true});
+ const mb=new MB(),r=rng32(1000+v*77),rock=0x8d8478,rock2=0x7a7266,rock3=0x9b9284,rock4=0x6f685c;
+ // low dusty base, barely above the grass
+ mb.add('cyl',0,0,0,1.32,.14,1.32,rock2,{noEdge:true});
+ // the rock mass: angular boulders of different sizes, tilted
+ for(let i=0;i<5;i++){
+  const a=r()*6.28,d=.12+r()*.6;
+  const x=Math.cos(a)*d,z=Math.sin(a)*d;
+  const w=.46+r()*.4,h=.5+r()*.55;
+  mb.add('ico',x,h*.40,z,w,h*.62,w,i%2?rock:rock3,{ry:r()*6.28,rx:(r()-.5)*.5,noEdge:true});
  }
- mb.add('cone6',0,0,0,1.25,1.5,1.25,rock,{noEdge:true});
- mb.add('cone6',.35,1.0,.25,.8,1.1,.8,rock2,{noEdge:true});
- mb.add('box',0,0,0,2.5,.12,2.5,0x6f6a60,{noEdge:true});
+ // one taller jagged crest so the tile reads as a hill
+ mb.add('ico',(r()-.5)*.3,.62,(r()-.5)*.3,.5,.7,.42,rock,{ry:r()*6.28,rx:(r()-.5)*.4,noEdge:true});
+ // loose stones around the foot
+ for(let i=0;i<5;i++){
+  const a=r()*6.28,d=.85+r()*.5;
+  const s=.12+r()*.09;
+  mb.add('ico',Math.cos(a)*d,.06,Math.sin(a)*d,s,s*.7,s,rock4,{ry:r()*6.28,noEdge:true});
+ }
  return HILLMB[v]=mb.freeze();
 }
 // ---- tunnels through the rock ----
@@ -1767,7 +1821,7 @@ function rebuildChunk(ch){
   }
   if(c.t===3){const fm=fenceMB(gx,gz);if(fm)appendMB(d,fm,px,0,pz,0)}
   else if(c.t===5){const bi=bridgeInfo(gx,gz);appendMB(d,bridgeMB(bi.rL,bi.rR,bi.junction),px,0,pz,bi.axis==='z'?-Math.PI/2:0)}
-  else if(c.t===9&&!b)appendMB(d,hillMB(Math.floor(h2(gx,gz,91)*4)),px,0,pz,0);
+  else if(c.t===9&&!b)appendMB(d,hillMB(Math.floor(h2(gx,gz,91)*6)),px,0,pz,h2(gx,gz,17)*6.283);
   else if(c.t===1){const cr=crossingInfo(gx,gz);if(cr){appendMB(d,crossingMB(cr),px,0,pz,0);buildGates(ch,extra,gx,gz,cr,px,pz)}}
  }
  if(ch.grp){scene.remove(ch.grp);disp(ch.grp)}if(ch.extra)scene.remove(ch.extra);
@@ -2141,8 +2195,8 @@ function syncTraffic(){
  while(pendingFleet.length){const v=addFleet(pendingFleet[0]);if(!v)break;pendingFleet.shift();renderFleet()}
  const cnt=t=>vehicles.filter(v=>v.type===t&&!v.fleet).length;
  let civ=civCount();
- const spawn=(type,col,pred,target)=>{let n=cnt(type),tries=0,added=0;while(n<target&&tries++<6&&added<2){if(civ>=vehLimit)break;const c=randomCellNear(pred,130);if(!c)continue;newVehicleAt(type,col,false,c.gx,c.gz);n++;civ++;added++}};
- spawn('car',rp(Math.random,CARCOL),c=>c.t===1,Math.max(4,Math.round(Math.min(24,Math.floor(stats.road/14))*(1-Math.min(.45,transitN*.035)))));
+ const spawn=(type,col,pred,target)=>{let n=cnt(type),tries=0,added=0;while(n<target&&tries++<6&&added<1){if(civ>=vehLimit)break;const c=randomCellNear(pred,130);if(!c)continue;newVehicleAt(type,col,false,c.gx,c.gz);n++;civ++;added++}};
+ spawn('car',rp(Math.random,CARCOL),c=>c.t===1,Math.max(2,Math.round(Math.min(16,Math.floor(stats.road/22))*(1-Math.min(.55,transitN*.045)))));
  spawn('tractor',0x3e8a3f,c=>c.t===3,Math.min(3,Math.floor(stats.farm/8)));
  spawn('boat',0,c=>c.t===2,Math.min(4,Math.floor(stats.water/40)));
  let over=civCount()-vehLimit;
@@ -2175,6 +2229,12 @@ let transitN=0,parkingN=0,utilN=0,leisureN=0,stadiumN=0,devBonus=1,matchT=80,tra
 
 // ===== CITY OFFICE: people ask the player for permission =====
 let people=[],requests=[],reqSeq=0,reqTimer=28;
+let tradeDeal=false,tradeExp=0,tradeImp=0,tradeTimer=18,jobsN=0,pendingPlace=null,talkIdx=-1;
+let taxRate=10,taxCollected=0,roadTaxCollected=0,taxTimer=20;
+const TALK={leader:['Our party wants to serve this ward — may we open an office here?','We can bring funds for the roads if you let us build.','Give us a plot and we will stand with your city.'],
+ business:['My shop will pay good taxes to the city.','Give me a plot near the market and I will hire local people.','I can expand twice more if the city allows.'],
+ traffic:['I will keep this junction moving, sir.','Traffic is heavy today — I will manage it.'],
+ exporter:['Our trucks will carry your goods to other cities.','Every truck we load adds to your city income.']};
 const SURNAME=['Patra','Mohanty','Das','Sahoo','Nayak','Behera','Rao','Sharma','Panda','Jena'];
 const BIZKIND=['textile shop','sweet shop','hardware store','cyber cafe','grocery mart','mobile shop'];
 function officeName(){return rp(Math.random,NAMES)+' '+rp(Math.random,SURNAME)}
@@ -2197,6 +2257,8 @@ function newRequest(kind){
  const r={id:++reqSeq,kind,name:nm,city:ci,t0:performance.now()};
  if(kind==='business'){r.title='open a '+rp(Math.random,BIZKIND);r.cost=1200;}
  else if(kind==='party'){r.title='open a party office';r.cost=2000;}
+ else if(kind==='exporter'){r.title='buy our farm and factory goods for export';r.cost=0;}
+ else if(kind==='showroom'){r.title='open a '+rp(Math.random,['bike showroom','car showroom'])+' and pay showroom tax';r.cost=1500;r.showroom=rp(Math.random,['bikeshowroom','carshowroom']);}
  else {r.title='be posted as a traffic officer';r.cost=600;}
  requests.push(r);
  toast(nm+' asks your permission to '+r.title+' — City Office');
@@ -2222,10 +2284,22 @@ function renderOffice(){
  }
  const pp=$('office-people');
  if(pp){
-  const roleName={traffic:'Traffic officer',leader:'Political leader',business:'Business owner'};
-  pp.innerHTML=people.length?people.map(p=>
-   '<div class="svc-row"><span class="svc-dot" style="background:#0f766e"></span><div><b>'+p.name+'</b><br><span class="svc-st">'+roleName[p.role]+'</span></div></div>').join('')
-   :'<div class="svc-empty">No appointments yet. Allow someone and they appear here.</div>';
+  const roleName={traffic:'Traffic officer',leader:'Political leader',business:'Business owner',exporter:'Exporter'};
+  pp.innerHTML=people.length?people.map((p,i)=>{
+   const where=p.cell?(' · plot '+p.cell[0]+','+p.cell[1]):'';
+   return '<div class="svc-row"><span class="svc-dot" style="background:'+(p.waiting?'#b45309':'#0f766e')+'"></span>'+
+    '<div style="flex:1 1 auto"><b>'+p.name+'</b><br><span class="svc-st">'+roleName[p.role]+(p.waiting?' · waiting for a plot':where)+'</span></div>'+
+    (p.waiting?'<button class="ui-btn primary" onclick="__givePlot('+i+')">Give a plot</button>'
+              :'<button class="ui-btn" onclick="__talk('+i+')">Talk</button>')+'</div>';
+  }).join(''):'<div class="svc-empty">No appointments yet. Allow someone and they appear here.</div>';
+  if(talkIdx>=0&&people[talkIdx]){
+   const p=people[talkIdx],lines=TALK[p.role]||TALK.business;
+   pp.innerHTML='<div class="svc-row" style="display:block"><b>'+p.name+' says:</b><br>'+
+    '<span class="svc-st">“'+rp(Math.random,lines)+'”</span>'+
+    '<div style="display:flex;gap:6px;margin-top:7px">'+
+    '<button class="ui-btn primary" onclick="__givePlot('+talkIdx+')">Give a plot</button>'+
+    '<button class="ui-btn" onclick="__talkClose()">Later</button></div></div>'+pp.innerHTML;
+  }
  }
  const nt=$('office-note');
  if(nt)nt.textContent='Nobody builds, opens a party office or takes a post without your permission. '+
@@ -2237,6 +2311,12 @@ window.__approveReq=function(id,ok){
  const i=requests.findIndex(r=>r.id===id);if(i<0)return;
  const r=requests[i];requests.splice(i,1);
  if(!ok){toast('Permission refused — '+r.name+' leaves the office');renderOffice();updateCivicHud();return}
+ if(r.kind==='exporter'){
+  tradeDeal=true;
+  people.push({name:r.name,role:'exporter'});
+  toast(r.name+' is now your export partner — goods leave the city and money comes in');
+  scanCivic();renderOffice();updateCivicHud();return;
+ }
  if(r.kind==='traffic'){
   const post=freePost();
   if(!post){toast('No traffic post needs an officer — build one first');renderOffice();return}
@@ -2244,17 +2324,25 @@ window.__approveReq=function(id,ok){
   people.push({name:r.name,role:'traffic'});
   toast(r.name+' posted as traffic officer');
  }else{
-  const f=focus();
-  const spot=freeGrassNear(Math.floor(f.x/T),Math.floor(f.z/T),11);
-  if(!spot){toast('No free land for the project');renderOffice();return}
-  if(!spend(r.cost)){renderOffice();return}
-  const c=loadedCell(spot.gx,spot.gz);
-  c.trees=[];c.b=mkB(r.kind==='party'?'party':'business',spot.gx,spot.gz,faceRotG(spot.gx,spot.gz),r.name);
-  startPop(c);touch(c);recalcPop();
-  people.push({name:r.name,role:r.kind==='party'?'leader':'business'});
-  toast((r.kind==='party'?'Party office':'Business')+' opened by '+r.name);
+  // the applicant pays the permit charge first - no money, no plot
+  const fee=r.cost||800;
+  cash+=fee;
+  taxCollected+=fee;
+  people.push({name:r.name,role:r.kind==='party'?'leader':'business',waiting:true,
+   kind:r.showroom||(r.kind==='party'?'party':'business'),fee:fee});
+  toast(r.name+' paid the $'+fee.toLocaleString('en-US')+' permit charge');
+  toast(r.name+' has your permission — tap “Give a plot” in the City Office');
  }
  scanCivic();renderOffice();updateCivicHud();
+};
+window.__talk=function(i){talkIdx=i;renderOffice()};
+window.__talkClose=function(){talkIdx=-1;renderOffice()};
+window.__givePlot=function(i){
+ const p=people[i];if(!p)return;
+ pendingPlace={kind:p.kind||(p.role==='leader'?'party':'business'),name:p.name,cost:0};
+ talkIdx=-1;
+ closeModal('modal-office');
+ toast('Tap an empty plot inside '+cityName(nearestCity())+' for '+p.name);
 };
 window.__appointPost=function(gx,gz){
  const c=loadedCell(gx,gz);
@@ -2341,7 +2429,7 @@ function updateSignalColors(){
 
 /* ---------- stations ---------- */
 function scanCivic(){
- const f=focus();let pol=null,cou=null,hos=null,fir=null,fac=0,tr=0,pk=0,ut=0,le=0,st=0,tp=0,gov=0,bz=0;
+ const f=focus();let pol=null,cou=null,hos=null,fir=null,fac=0,tr=0,pk=0,ut=0,le=0,st=0,tp=0,gov=0,bz=0,jobs=0;
  const nearer=(cur,c)=>!cur||Math.hypot(c.b.x-f.x,c.b.z-f.z)<Math.hypot(cur.b.x-f.x,cur.b.z-f.z)?c:cur;
  for(const ch of chunkArr)for(const c of ch.cells){
   const b=c.b;if(!b)continue;
@@ -2356,7 +2444,10 @@ function scanCivic(){
   }
   else if(b.kind==='parking')pk++;
   else if(b.kind==='trafficpost')tp++;
-  else if(b.kind==='business'){le++;bz++;}
+  else if(b.kind==='business'){le++;bz++;jobs+=8;}
+  else if(b.kind==='office'||b.kind==='tower'||b.kind==='dome'){jobs+=12;}
+  else if(b.kind==='factory'||b.kind==='silo'){jobs+=15;}
+  else if(b.kind==='mall'){jobs+=10;}
   else if(b.kind==='parliament'){le+=2;gov++;}
   else if(b.kind==='party'){le++;gov++;}
   else if(b.kind==='water'||b.kind==='power'||b.kind==='waste')ut++;
@@ -2366,7 +2457,7 @@ function scanCivic(){
           b.kind==='temple'||b.kind==='mosque'||b.kind==='church'||b.kind==='park'||b.kind==='plaza')le++;
  }
  CIV.police=pol?1:0;CIV.court=cou?1:0;CIV.hospital=hos?1:0;CIV.fire=fir?1:0;CIV.factory=fac;
- transitN=tr;parkingN=pk;utilN=ut;leisureN=le;stadiumN=st;trafficPosts=tp;govN=gov;bizN=bz;
+ transitN=tr;parkingN=pk;utilN=ut;leisureN=le;stadiumN=st;trafficPosts=tp;govN=gov;bizN=bz;jobsN=jobs;
  devBonus=1+Math.min(.30,tr*.02)+Math.min(.25,ut*.06)+Math.min(.22,le*.012)+Math.min(.10,pk*.02)
   +Math.min(.16,bz*.02)+Math.min(.08,gov*.01);
  CIV.policeCell=pol;CIV.courtCell=cou;CIV.hospitalCell=hos;CIV.fireCell=fir;
@@ -2492,6 +2583,13 @@ function spawnUnitNear(inc,type){
 }
 function dispatchFor(inc){
  const meta=INC_META[inc.type];
+ // police always attend a road accident as well, like real life
+ if(inc.type==='accident'&&CIV.police&&!inc.policeSent){
+  inc.policeSent=true;
+  let pu=freeUnit('police');
+  if(!pu&&CIV.policeCell)pu=makeUnit('police',CIV.policeCell);
+  if(pu){pu.dest={x:inc.x,z:inc.z};pu.urgent=true;pu.idleAt=0}
+ }
  // a unit already on patrol nearby can take the call
  const u=freeUnit(meta.unit);
  if(u&&Math.hypot(u.x-inc.x,u.z-inc.z)<50){
@@ -2578,6 +2676,11 @@ function renderServices(){
   card('Traffic posts',trafficPosts,trafficPosts?'officers on duty':'none yet'),
   card('Government',govN,govN?'in session':'no house yet'),
   card('Businesses',bizN,bizN?'approved':'none yet'),
+  card('Jobs',jobsN,jobsN?'workplaces':'none yet'),
+  card('Income tax',taxRate+'%','$'+taxCollected.toLocaleString('en-US')+' collected'),
+  card('Road tax','$'+roadTaxCollected.toLocaleString('en-US'),'from '+civCount()+' vehicles'),
+  card('Exports','$'+tradeExp.toLocaleString('en-US'),tradeDeal?'trade open':'no exporter yet'),
+  card('Imports','$'+tradeImp.toLocaleString('en-US'),''),
   card('City bonus','+'+(Math.round((devBonus-1)*1000)/10)+'%','on all income')
  ].join('');
  const list=$('svc-incidents');
@@ -2685,6 +2788,32 @@ function civicFrame(dt,now){
    toast('Match day at the stadium — gate receipts +$'+gate.toLocaleString('en-US'));
   }
  }
+ // taxes: businesses and parties pay income tax, every vehicle pays road tax
+ taxTimer-=dt;
+ if(taxTimer<=0){
+  taxTimer=20;
+  const bizIncome=bizN*45+govN*30+jobsN*2;
+  const it=Math.round(bizIncome*taxRate/100);
+  const rt=civCount()*2;
+  if(it>0||rt>0){
+   cash+=it+rt;taxCollected+=it;roadTaxCollected+=rt;updateHud();
+  }
+ }
+ // export / import: approved exporters move goods out of the city
+ if(tradeDeal){
+  tradeTimer-=dt;
+  if(tradeTimer<=0){
+   tradeTimer=18;
+   const goods=Math.min(60,Math.floor(stats.farm*2+CIV.factory*4));
+   if(goods>0){
+    const sale=goods*9;
+    const imp=Math.floor(goods*0.3)*7;
+    cash+=sale-imp;tradeExp+=sale;tradeImp+=imp;
+    updateHud();
+    if(Math.random()<.35)toast('Trucks exported goods worth $'+sale.toLocaleString('en-US'));
+   }
+  }
+ }
  reqTimer-=dt;
  if(reqTimer<=0){
   reqTimer=42+Math.random()*30;
@@ -2717,6 +2846,17 @@ function startPop(c){
 }
 function lineCells(x0,z0,x1,z1){const a=[];let x=x0,z=z0;const sx=Math.sign(x1-x0),sz=Math.sign(z1-z0);while(x!==x1&&a.length<60){x+=sx;a.push({gx:x,gz:z})}while(z!==z1&&a.length<60){z+=sz;a.push({gx:x,gz:z})}return a}
 function applyOne(id,gx,gz){
+ const c0=loadedCell(gx,gz);
+ if(pendingPlace&&c0&&c0.t===0&&!c0.b){
+  const pp=pendingPlace;pendingPlace=null;
+  if(!spend(pp.cost))return false;
+  c0.trees=[];c0.b=mkB(pp.kind, gx,gz, faceRotG(gx,gz), pp.name);
+  startPop(c0);touch(c0);recalcPop();
+  const ex=people.find(p=>p.name===pp.name&&p.waiting);
+  if(ex){ex.waiting=false;ex.cell=[gx,gz];ex.role=pp.kind==='party'?'leader':'business';}
+  else people.push({name:pp.name,role:pp.kind==='party'?'leader':'business',cell:[gx,gz]});
+  toast(pp.name+"'s project built on this plot");renderOffice();return true;
+ }
  const c=ensureCell(gx,gz);
  if(id==='clear'){
   if(c.b){if(c.b.kind==='signal')sigDirty=true;c.b=null;if(c.t===4||c.t===6)c.t=0;cash+=200;touch(c);recalcPop();return true}
@@ -2801,6 +2941,11 @@ function inspect(c){
 }
 function useTool(gx,gz){
  const c=ensureCell(gx,gz);flash(gx,gz,0x0f766e);
+ if(pendingPlace){                     // the player is choosing the plot themselves
+  if(c.t!==0||c.b){toast('Pick an empty grass plot for '+pendingPlace.name);return}
+  applyOne('inspect',gx,gz);
+  return;
+ }
  if(cur==='inspect'){inspect(c);return}
  if(cur==='road'||cur==='river'||cur==='farm'||cur==='wall'||cur==='rail'||cur==='metroline'){
   if(chain&&!(chain.gx===gx&&chain.gz===gz)){for(const q of lineCells(chain.gx,chain.gz,gx,gz))if(!applyOne(cur,q.gx,q.gz))break;chain={gx,gz};markChain()}
@@ -2910,6 +3055,7 @@ function cityName(ci){return ci>=0?cityInfo(ci).name:'Open country'}
 function saveRules(){try{localStorage.setItem('cityrt4_rules',JSON.stringify(cityRules))}catch(e){}}
 function updateVehCount(){
  if(vehOut)vehOut.textContent=civCount()+' / '+vehLimit+' vehicles';
+ if(typeof updateTaxCount==='function')updateTaxCount();
  if(popOut)popOut.textContent=popLimit>0?(pop+' / '+popLimit+' residents'):(pop+' residents · no limit');
 }
 function loadCityRules(force){
@@ -2935,6 +3081,14 @@ if(vehBtn)vehBtn.onclick=()=>{
  cityRules[curCity]=Object.assign({},cityRules[curCity],{veh:n});
  if(vehIn)vehIn.value=n;updateVehCount();saveRules();
  toast(cityName(curCity)+': at most '+n+' vehicles on the road');
+};
+const taxIn=$('tax-rate'),taxBtn=$('tax-apply'),taxOut=$('tax-count');
+function updateTaxCount(){if(taxOut)taxOut.textContent='Tax collected $'+taxCollected.toLocaleString('en-US')+' · road tax $'+roadTaxCollected.toLocaleString('en-US')}
+if(taxIn)taxIn.value=taxRate;
+if(taxBtn)taxBtn.onclick=()=>{
+ const n=clamp(Math.round(Number(taxIn.value)||0),0,40);
+ taxRate=n;if(taxIn)taxIn.value=n;updateTaxCount();saveRules();
+ toast('Income tax set to '+n+'% — every business and party must pay');
 };
 if(popBtn)popBtn.onclick=()=>{
  const n=clamp(Math.round(Number(popIn.value)||0),0,100000);
