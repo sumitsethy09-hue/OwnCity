@@ -905,6 +905,39 @@ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 $('canvas-container').appendChild(renderer.domElement);
 const cv=renderer.domElement;
+
+// ---- resilience: never leave the player on a black or frozen screen ----
+let lastFrameAt=performance.now(),lastSoftReload=-1e9;
+function softReload(why){
+ const now=performance.now();
+ if(now-lastSoftReload<25000)return;      // never loop
+ lastSoftReload=now;
+ try{saveNow()}catch(e){}
+ try{toast('Refreshing the view…')}catch(e){}
+ setTimeout(function(){try{location.reload()}catch(e){}},350);
+}
+cv.addEventListener('webglcontextlost',function(e){e.preventDefault();softReload('gpu lost')},false);
+cv.addEventListener('webglcontextrestored',function(){softReload('gpu back')},false);
+function healthCheck(){
+ let lost=false;
+ try{const gl=renderer.getContext();lost=!!(gl&&gl.isContextLost&&gl.isContextLost())}catch(e){}
+ const stalled=performance.now()-lastFrameAt>8000;
+ if(lost||stalled)softReload(lost?'gpu':'frozen');
+}
+setInterval(healthCheck,90000);            // health sweep every 90 s
+let hiddenAt=0;
+document.addEventListener('visibilitychange',function(){
+ if(document.visibilityState==='hidden'){
+  hiddenAt=performance.now();
+  try{saveNow()}catch(e){}
+ }else{
+  lastFrameAt=performance.now();           // the loop restarts with the tab
+  const away=hiddenAt?performance.now()-hiddenAt:0;
+  hiddenAt=0;
+  if(away>15000)softReload('back from background');   // long stay in background: refresh
+  else setTimeout(healthCheck,1500);
+ }
+});
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xaed6f0);scene.fog=new THREE.Fog(0xaed6f0,100,320);
 const cam=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.5,2000);
 const hemi=new THREE.HemisphereLight(0xdfeeff,0x7d8f5a,.7);scene.add(hemi);
@@ -1976,6 +2009,37 @@ function snapToPassable(v){
   if(passable(v.type,q.cx+a,q.cz+b)){v.cx=q.cx+a;v.cz=q.cz+b;v.px=-9999;v.pz=-9999;v.t=0;pickNext(v);const p=cc(v.cx,v.cz);v.x=p.x;v.z=p.z;v.mesh.visible=true;return true}}
  v.mode='parked';v.mesh.visible=false;return false;
 }
+// true when another vehicle is right on top of v (same lane, overlapping)
+function overlapsOther(v){
+ const fx=Math.sin(v.h),fz=Math.cos(v.h);
+ for(const o of vehicles){
+  if(o===v)continue;
+  const dx=o.x-v.x,dz=o.z-v.z;
+  if(dx*dx+dz*dz>4.2)continue;
+  const along=Math.abs(dx*fx+dz*fz),lat=Math.abs(dx*fz-dz*fx);
+  if(along<1.75&&lat<0.55)return true;
+ }
+ return false;
+}
+// second pass each frame: no two cars may share the same spot
+function separateVehicles(){
+ for(let i=0;i<vehicles.length;i++){
+  const a=vehicles[i];
+  for(let j=i+1;j<vehicles.length;j++){
+   const b=vehicles[j];
+   const dx=b.x-a.x,dz=b.z-a.z;
+   if(dx*dx+dz*dz>4.2)continue;
+   const fx=Math.sin(a.h),fz=Math.cos(a.h);
+   const along=Math.abs(dx*fx+dz*fz),lat=Math.abs(dx*fz-dz*fx);
+   if(along<1.75&&lat<0.55){
+    const push=(1.75-along)+0.08;
+    b.x-=Math.sin(b.h)*push;b.z-=Math.cos(b.h)*push;
+    b.speed=0;
+    placeV(b);
+   }
+  }
+ }
+}
 const input={up:false,down:false,left:false,right:false};
 const walk={on:false,x:0,z:0,yaw:0,pitch:0,near:null},drive={v:null};
 function placeV(v){
@@ -1988,13 +2052,30 @@ function stepV(v,dt){
   const acc=(input.up?1:0)-(input.down?1:0);v.speed+=acc*10*dt;v.speed-=v.speed*1.3*dt;v.speed=clamp(v.speed,-4,def.speed*1.7);
   v.h+=((input.left?1:0)-(input.right?1:0))*1.9*dt*clamp(v.speed/3,-1,1);
   const nx=v.x+Math.sin(v.h)*v.speed*dt,nz=v.z+Math.cos(v.h)*v.speed*dt,gx=Math.floor(nx/T),gz=Math.floor(nz/T),t=tPeek(gx,gz),lc2=loadedCell(gx,gz);
-  if(t!==2&&!(lc2&&lc2.b&&!['park','plaza','gate','signal','metroline','trafficpost'].includes(lc2.b.kind))){v.x=nx;v.z=nz}else v.speed=0;
+  if(t!==2&&!(lc2&&lc2.b&&!['park','plaza','gate','signal','metroline','trafficpost'].includes(lc2.b.kind))){
+   const ox=v.x,oz=v.z;v.x=nx;v.z=nz;
+   if(overlapsOther(v)){v.x=ox;v.z=oz;v.speed=0}
+  }else v.speed=0;
   placeV(v);return;
  }
  if(v.mode==='parked'){placeV(v);return}
  if(!passable(v.type,v.cx,v.cz)){if(!snapToPassable(v))return}
  let target=def.speed;
- for(const o of vehicles){if(o===v||!o.mesh.visible)continue;const dx=o.x-v.x,dz=o.z-v.z;if(dx*dx+dz*dz<6){const fx=Math.sin(v.h),fz=Math.cos(v.h),dot=dx*fx+dz*fz,lat=Math.abs(dx*fz-dz*fx);if(dot>.2&&dot<2.5&&lat<.9)target=0}}
+ // look for the vehicle in front: stop for it and never push through
+ {
+  const fx=Math.sin(v.h),fz=Math.cos(v.h);
+  let gapAhead=1e9;
+  for(const o of vehicles){
+   if(o===v)continue;
+   const dx=o.x-v.x,dz=o.z-v.z;
+   const along=dx*fx+dz*fz,lat=Math.abs(dx*fz-dz*fx);
+   if(along<=0.05||along>4.5)continue;
+   const wide=(o.type==='bus'||o.type==='firetruck'||o.type==='train'||o.type==='metro')?1.0:0.72;
+   if(lat>wide)continue;
+   if(along<gapAhead)gapAhead=along;
+  }
+  if(gapAhead<2.6)target=0;
+ }
  if((v.type==='train'||v.type==='metro')&&!v.urgent){
   const stn=v.type==='train'?'railway':'metro';
   const hasStn=(x,z)=>{const c=loadedCell(x,z);return !!(c&&c.b&&c.b.kind===stn)};
@@ -2006,13 +2087,16 @@ function stepV(v,dt){
   v.sigW=(v.sigW||0)+dt;
   if(v.sigW<22){target=0;v.t=Math.min(v.t,.70)} else v.sigW=0;   // never wait forever
  } else v.sigW=0;
- if(target===0){v.wait+=dt;if(v.wait>1.4){target=def.speed*.6;if(v.wait>2.6)v.wait=0}}else v.wait=0;
+ v.wait=target===0?(v.wait+dt):0;   // no timed release: a blocked car stays blocked
  v.speed+=(target-v.speed)*Math.min(1,dt*4);v.t+=v.speed*dt/T;
  while(v.t>=1){v.t-=1;v.px=v.cx;v.pz=v.cz;v.cx=v.nx;v.cz=v.nz;if(!pickNext(v)){v.t=0;v.speed=0;break}}
  const a=cc(v.cx,v.cz),b=cc(v.nx,v.nz);
  if(v.nx!==v.cx||v.nz!==v.cz){const th=Math.atan2(b.x-a.x,b.z-a.z);v.h+=Math.atan2(Math.sin(th-v.h),Math.cos(th-v.h))*Math.min(1,dt*8)}
  const lane=(v.type==='tractor'||v.type==='boat'||v.type==='train'||v.type==='metro')?0:.42;
- v.x=lerp(a.x,b.x,v.t)-Math.cos(v.h)*lane;v.z=lerp(a.z,b.z,v.t)+Math.sin(v.h)*lane;placeV(v);
+ const ox=v.x,oz=v.z;
+ v.x=lerp(a.x,b.x,v.t)-Math.cos(v.h)*lane;v.z=lerp(a.z,b.z,v.t)+Math.sin(v.h)*lane;
+ if(overlapsOther(v)){v.x=ox;v.z=oz;v.speed=0;v.t=Math.min(v.t,.9)}
+ placeV(v);
 }
 function spawnPed(){
  const c=randomCellNear(c=>c.t===1,120);if(!c)return;const p=cc(c.gx,c.gz),R=Math.random,fem=R()<.5;
@@ -2037,6 +2121,18 @@ function addFleet(type){
 }
 let vehLimit=24,popLimit=0;
 function civCount(){let n=0;for(const v of vehicles)if(!v.fleet)n++;return n}
+function enforceFleet(){
+ // player's own vehicles: at most 6
+ const perm=[];for(const v of vehicles)if(v.fleet&&!v.temp)perm.push(v);
+ if(perm.length>6)for(let i=6;i<perm.length;i++)removeVehicle(perm[i]);
+ // emergency units: one per service, three in total
+ const temps=[];for(const v of vehicles)if(v.temp)temps.push(v);
+ const seen={};
+ for(const v of temps){
+  if(seen[v.type]||tempUnits()>3){removeVehicle(v);continue}
+  seen[v.type]=1;
+ }
+}
 function syncTraffic(){
  const f=focus();
  for(const v of vehicles.slice())if(!v.fleet&&Math.hypot(v.x-f.x,v.z-f.z)>190)removeVehicle(v);
@@ -2045,7 +2141,7 @@ function syncTraffic(){
  while(pendingFleet.length){const v=addFleet(pendingFleet[0]);if(!v)break;pendingFleet.shift();renderFleet()}
  const cnt=t=>vehicles.filter(v=>v.type===t&&!v.fleet).length;
  let civ=civCount();
- const spawn=(type,col,pred,target)=>{let n=cnt(type),tries=0;while(n<target&&tries++<4){if(civ>=vehLimit)break;const c=randomCellNear(pred,130);if(!c)continue;newVehicleAt(type,col,false,c.gx,c.gz);n++;civ++}};
+ const spawn=(type,col,pred,target)=>{let n=cnt(type),tries=0,added=0;while(n<target&&tries++<6&&added<2){if(civ>=vehLimit)break;const c=randomCellNear(pred,130);if(!c)continue;newVehicleAt(type,col,false,c.gx,c.gz);n++;civ++;added++}};
  spawn('car',rp(Math.random,CARCOL),c=>c.t===1,Math.max(4,Math.round(Math.min(24,Math.floor(stats.road/14))*(1-Math.min(.45,transitN*.035)))));
  spawn('tractor',0x3e8a3f,c=>c.t===3,Math.min(3,Math.floor(stats.farm/8)));
  spawn('boat',0,c=>c.t===2,Math.min(4,Math.floor(stats.water/40)));
@@ -2360,7 +2456,7 @@ function freeUnit(type){
 }
 function tempUnits(type){let n=0;for(const v of vehicles)if(v.temp&&(!type||v.type===type))n++;return n}
 function makeUnit(type,cell){
- if(tempUnits()>=4||tempUnits(type)>=2)return null;   // small, balanced service fleet
+ if(tempUnits(type)>=1||tempUnits()>=3)return null;   // one unit of each service, three in all
  const spot=roadNear(cell.gx,cell.gz,12);if(!spot)return null;
  const v=newVehicleAt(type,FLEET_COL[type],true,spot.gx,spot.gz);
  v.label=(FLEET_LABEL[type]||'Service unit')+' #'+(nameN[type]=(nameN[type]||0)+1);
@@ -2386,7 +2482,7 @@ function routeFor(u,inc){
  return findPath(u.cx,u.cz,stop.gx,stop.gz,u.type,14000);
 }
 function spawnUnitNear(inc,type){
- if(tempUnits()>=4||tempUnits(type)>=2)return null;
+ if(tempUnits(type)>=1||tempUnits()>=3)return null;
  const spot=roadNear(inc.gx,inc.gz,6);
  if(!spot)return null;
  const v=newVehicleAt(type,FLEET_COL[type],true,spot.gx,spot.gz);
@@ -2566,11 +2662,8 @@ function civicFrame(dt,now){
    if(now-v.idleAt>15000)removeVehicle(v);
   }else v.idleAt=0;
  }
- let temps=[];for(const v of vehicles)if(v.temp)temps.push(v);
- if(temps.length>4){
-  temps.sort((a,b)=>(a.idleAt||0)-(b.idleAt||0));
-  for(let i=0;i<temps.length-4;i++)removeVehicle(temps[i]);
- }
+ enforceFleet();
+ enforceFleet();
  // hard ceiling: city rule + a small allowance for emergency units
  const capTotal=vehLimit+6;
  if(vehicles.length>capTotal){
@@ -2724,7 +2817,7 @@ function markChain(){if(chain){const p=cc(chain.gx,chain.gz);chMesh.position.x=p
 // ===== SAVE / LOAD =====
 function saveNow(){try{
  localStorage.setItem('cityrt4_edits',JSON.stringify([...edits]));
- localStorage.setItem('cityrt4_meta',JSON.stringify({cash:Math.floor(cash),tx,tz,yaw,pitch,dist,civ:civ,crime:crimeIdx,veh:vehLimit,fleet:vehicles.filter(v=>v.fleet).map(v=>v.type)}));
+ localStorage.setItem('cityrt4_meta',JSON.stringify({cash:Math.floor(cash),tx,tz,yaw,pitch,dist,civ:civ,crime:crimeIdx,veh:vehLimit,fleet:vehicles.filter(v=>v.fleet&&!v.temp).slice(0,6).map(v=>v.type)}));
 }catch(e){}}
 function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(saveNow,1500)}
 addEventListener('pagehide',saveNow);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveNow()});
@@ -2996,6 +3089,7 @@ function frameBody(now){
    else if(!far&&v.far){v.mesh.visible=true;v.far=false}
   }
  }
+ separateVehicles();
  // pedestrians (realistic walking humans)
  for(const p of peds)stepPed(p,dt);
  {let n=0,nb2=0,ns=0;const MS=.42;
@@ -3084,6 +3178,7 @@ function frameBody(now){
  swayU.value=ts;waterU.uTime.value=ts;
  const ph=Math.floor(now/180)%2;matRed.emissiveIntensity=ph?2.6:.15;matBlue.emissiveIntensity=ph?.15:2.6;
  incT+=dt;if(incT>3){incT=0;cash+=pop*1.2*devBonus;updateHud()}
+ lastFrameAt=now;
  renderer.render(scene,cam);requestAnimationFrame(frame);
 }
 
@@ -3100,7 +3195,7 @@ renderTabs();renderDock();updateHud();
   cash=meta.cash||cash;tx=meta.tx;tz=meta.tz;yaw=meta.yaw||yaw;pitch=meta.pitch||pitch;dist=clamp(meta.dist||75,14,130);
   if(meta.civ)Object.assign(civ,meta.civ);if(isFinite(meta.crime))crimeIdx=meta.crime;
   if(isFinite(meta.veh))vehLimit=clamp(meta.veh,0,200);
-  pendingFleet=(meta.fleet&&meta.fleet.length)?meta.fleet.slice():['bus','ambulance','firetruck'];
+  pendingFleet=(meta.fleet&&meta.fleet.length)?meta.fleet.filter(t=>FLEET_LABEL[t]).slice(0,6):['bus','ambulance','firetruck'];
  }else{
   const c=cityInfo(2);tx=(c.mx+.5)*T;tz=(c.mz+.5)*T;pendingFleet=['bus','ambulance','firetruck'];
  }
