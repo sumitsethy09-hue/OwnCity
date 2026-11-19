@@ -1511,12 +1511,20 @@ B.trafficpost=(mb,r,th,o)=>{
  mb.add('box',X-.45,.55,-.4,.04,.4,.6,0x8fbfdc,{glass:true});
  mb.add('cyl',X,0,.55,.04,1.5,.04,0xcfd3d8,{noEdge:true});
  mb.add('box',X,1.5,.55,.5,.3,.04,0x2f6f9f);
- // the officer on duty, standing at the kerb with a raised hand
- mb.add('cyl',X-.05,0,.15,.15,.8,.15,0xb8a06a);
- mb.add('box',X-.05,.8,.15,.3,.55,.2,0x8a7a4a);
- mb.add('box',X-.05,1.35,.15,.24,.24,.2,0xf1c9a5);
- mb.add('box',X-.05,1.58,.15,.28,.07,.26,0xf4f4f2,{noEdge:true});
- mb.add('box',X+.12,1.15,.15,.07,.38,.07,0xf1c9a5,{rz:-.55});
+ // the officer on duty: same build as the other people, khaki uniform + white cap
+ const OX=X-.05,OZ=.15,uni=0x8a7a4a,uniD=0x6f6238,skin=0xf1c9a5;
+ mb.add('cyl',OX-.09,0,OZ,.06,.85,.06,uniD,{noEdge:true});
+ mb.add('cyl',OX+.09,0,OZ,.06,.85,.06,uniD,{noEdge:true});
+ mb.add('box',OX-.09,.01,OZ+.04,.11,.07,.26,0x2a2c30,{noEdge:true});
+ mb.add('box',OX+.09,.01,OZ+.04,.11,.07,.26,0x2a2c30,{noEdge:true});
+ mb.add('box',OX,.85,OZ,.42,.6,.22,uni);
+ mb.add('box',OX,.83,OZ,.44,.08,.24,0x2a2c30,{noEdge:true});
+ mb.add('cyl',OX-.26,1.42,OZ,.055,.58,.055,uni,{noEdge:true});
+ mb.add('cyl',OX+.26,1.42,OZ,.055,.58,.055,uni,{noEdge:true});
+ mb.add('box',OX+.30,1.92,OZ,.14,.14,.14,skin,{noEdge:true});
+ mb.add('dome',OX,1.45,OZ,.12,.24,.12,skin);
+ mb.add('box',OX,1.66,OZ,.26,.07,.26,0xf4f4f2,{noEdge:true});
+ mb.add('box',OX,1.63,OZ+.14,.22,.04,.12,0x2f6f9f,{noEdge:true});
 };
 B.parliament=(mb,r,th,o)=>{
  o.wall=0xece5d4;
@@ -2391,7 +2399,7 @@ const matSigHead=new THREE.MeshStandardMaterial({color:lin(0x191d20),roughness:.
 const gSigPole=new THREE.CylinderGeometry(.045,.055,1.3,6).translate(0,.65,0);
 const gSigHead=new THREE.BoxGeometry(.18,.46,.18).translate(0,.23,0);
 const gSigLamp=new THREE.BoxGeometry(.1,.1,.03);
-const iSigPole=inst(gSigPole,matSigPole,520,false,false),iSigHead=inst(gSigHead,matSigHead,520,false,false),iSigLamp=inst(gSigLamp,instBasicMat(),1040,false,true);
+const iSigPole=inst(gSigPole,matSigPole,1100,false,false),iSigHead=inst(gSigHead,matSigHead,1100,false,false),iSigLamp=inst(gSigLamp,instBasicMat(),2200,false,true);
 const SIGCOL={g:lin(0x2ee06a),y:lin(0xffc02e),r:lin(0xf23b3b)};
 let sigList=[],sigBuiltAt=-1e9,sigDirty=true;
 const sigAt={x:1e9,z:1e9};
@@ -2403,15 +2411,16 @@ function rebuildSignals(){
   const gx=cgx+dx,gz=cgz+dz;if(!isSigCell(gx,gz))continue;
   const p=cc(gx,gz);if(Math.hypot(p.x-f.x,p.z-f.z)>R)continue;
   const y=groundY(p.x,p.z);
-  for(const s of [-1,1]){
-   const ox=p.x+s*T*.40,oz=p.z+s*T*.40;
+  // one post on each of the four corners, so all four approaches see a light
+  for(const sx of [-1,1])for(const sz of [-1,1]){
+   const ox=p.x+sx*T*.40,oz=p.z+sz*T*.40;
    put(iSigPole,n,ox,y,oz,1,1,1,0);
    put(iSigHead,n,ox,y+1.28,oz,1,1,1,0);
-   put(iSigLamp,l,ox,y+1.52,oz+.1,1,1,1,0);
-   put(iSigLamp,l+1,ox+.1,y+1.52,oz,1,1,1,Math.PI/2);
+   put(iSigLamp,l,ox,y+1.52,oz-sz*.1,1,1,1,0);            // faces along the road
+   put(iSigLamp,l+1,ox-sx*.1,y+1.52,oz,1,1,1,Math.PI/2);  // faces across it
    n++;l+=2;
   }
-  sigList.push({gx,gz,base:l-4});
+  sigList.push({gx,gz,base:l-8});
  }
  iSigPole.count=iSigHead.count=n;iSigLamp.count=l;
  iSigPole.instanceMatrix.needsUpdate=true;iSigHead.instanceMatrix.needsUpdate=true;iSigLamp.instanceMatrix.needsUpdate=true;
@@ -2421,8 +2430,10 @@ function updateSignalColors(){
  if(!sigList.length)return;
  for(const s of sigList){
   const ph=sigPhaseAt(s.gx,s.gz);
-  setCol(iSigLamp,s.base,SIGCOL[ph.ns]);setCol(iSigLamp,s.base+1,SIGCOL[ph.ew]);
-  setCol(iSigLamp,s.base+2,SIGCOL[ph.ns]);setCol(iSigLamp,s.base+3,SIGCOL[ph.ew]);
+  for(let k=0;k<4;k++){
+   setCol(iSigLamp,s.base+k*2,SIGCOL[ph.ns]);
+   setCol(iSigLamp,s.base+k*2+1,SIGCOL[ph.ew]);
+  }
  }
  iSigLamp.geometry.attributes.iCol.needsUpdate=true;
 }
