@@ -601,6 +601,10 @@
       <div class="svc-label">People in the city</div>
       <div class="svc-list" id="office-people"></div>
       <div class="svc-note" id="office-note"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="ui-btn" onclick="__clearOffice(0)">Clear requests</button>
+        <button class="ui-btn" onclick="__clearOffice(1)">Clear all plots &amp; requests</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1621,7 +1625,22 @@ function lineMask(gx,gz,kind){
  let m=0;if(at(gx,gz+1))m|=1;if(at(gx,gz-1))m|=2;if(at(gx+1,gz))m|=4;if(at(gx-1,gz))m|=8;
  return m||5;
 }
-const RAILMB={},METROMB={};
+const RAILMB={},RAILBMB={},METROMB={};
+// rail carried over water on a bridge deck with piers
+function railBridgeMB(mask){
+ if(RAILBMB[mask])return RAILBMB[mask];
+ const mb=new MB();
+ for(const s of [-1,1])mb.add('cyl',0,0,s*.8,.17,.46,.17,0xb9b2a4,{noEdge:true});
+ mb.add('box',0,.45,0,2.92,.14,2.92,0xd8d0c0);
+ mb.add('box',0,.59,0,2.6,.04,2.6,0x9aa0a6,{noEdge:true});
+ if(mask&3)for(const sx of[-.45,.45])mb.add('box',sx,.65,0,.1,.1,3,0xa8aeb4,{noEdge:true});
+ if(mask&12)for(const sz of[-.45,.45])mb.add('box',0,.65,sz,3,.1,.1,0xa8aeb4,{noEdge:true});
+ if(!(mask&1))mb.add('box',0,.6,1.4,2.92,.22,.1,0xeff2f5,{noEdge:true});
+ if(!(mask&2))mb.add('box',0,.6,-1.4,2.92,.22,.1,0xeff2f5,{noEdge:true});
+ if(!(mask&4))mb.add('box',1.4,.6,0,.1,.22,2.92,0xeff2f5,{noEdge:true});
+ if(!(mask&8))mb.add('box',-1.4,.6,0,.1,.22,2.92,0xeff2f5,{noEdge:true});
+ return RAILBMB[mask]=mb.freeze();
+}
 const METRO_Y=4.15;
 function railMB(mask){
  if(RAILMB[mask])return RAILMB[mask];
@@ -1821,10 +1840,21 @@ function rebuildChunk(ch){
    if(k==='wall'){const arms=[];for(const [dx,dz] of DIRS){const nb=peekCell(gx+dx,gz+dz).b;if(nb&&(nb.kind==='wall'||nb.kind==='gate'))arms.push([dx,dz])}appendMB(d,wallMB(arms),px,0,pz,0)}
    else if(k==='gate')appendMB(d,GATE,px,0,pz,b.rot);
    else if(k==='turbine'){appendMB(d,bGeo(b,gx,gz),px,0,pz,0);const r=rotorProto.clone();r.position.set(px,5.8,pz+.45);extra.add(r);ch.rotors.push(r)}
-   else if(k==='railline')appendMB(d,railMB(lineMask(gx,gz,'railline')),px,0,pz,0);
+   else if(k==='railline')appendMB(d,(c.t===2?railBridgeMB(lineMask(gx,gz,'railline')):railMB(lineMask(gx,gz,'railline'))),px,0,pz,0);
    else if(k==='railtunnel')appendMB(d,tunnelMB('rail',lineMask(gx,gz,'railline')),px,0,pz,0);
    else if(k==='metrotunnel')appendMB(d,tunnelMB('metro',lineMask(gx,gz,'metroline')),px,0,pz,0);
-   else if(k==='metroline')appendMB(d,metroMB(lineMask(gx,gz,'metroline')),px,0,pz,0);
+   else if(k==='metroline'){
+    appendMB(d,metroMB(lineMask(gx,gz,'metroline')),px,0,pz,0);
+    // a boundary the viaduct was built over stays standing underneath
+    if(b.text==='wall'){
+     const arms=[];
+     for(const [dx,dz] of DIRS){
+      const nb=peekCell(gx+dx,gz+dz).b;
+      if(nb&&(nb.kind==='wall'||nb.kind==='gate'||(nb.kind==='metroline'&&nb.text==='wall')))arms.push([dx,dz]);
+     }
+     appendMB(d,wallMB(arms),px,0,pz,0);
+    }else if(b.text==='gate')appendMB(d,GATE,px,0,pz,b.rot);
+   }
    else appendMB(d,bGeo(b,gx,gz),px,0,pz,(k==='park'||k==='plaza')?0:b.rot);
   }
   if(c.t===3){const fm=fenceMB(gx,gz);if(fm)appendMB(d,fm,px,0,pz,0)}
@@ -2105,7 +2135,8 @@ function separateVehicles(){
 const input={up:false,down:false,left:false,right:false};
 const walk={on:false,x:0,z:0,yaw:0,pitch:0,near:null},drive={v:null};
 function placeV(v){
- const y=v.type==='metro'?METRO_Y+.26:v.type==='train'?.2:(v.type==='boat'?Math.sin(performance.now()/500+v.id)*.02:groundY(v.x,v.z));
+ let y=v.type==='metro'?METRO_Y+.26:(v.type==='boat'?Math.sin(performance.now()/500+v.id)*.02:groundY(v.x,v.z));
+ if(v.type==='train')y=(tPeek(v.cx,v.cz)===2)?.68:.2;
  v.mesh.position.set(v.x,y,v.z);v.mesh.rotation.y=v.h;
 }
 function stepV(v,dt){
@@ -2342,6 +2373,12 @@ window.__approveReq=function(id,ok){
   toast(r.name+' has your permission — tap “Give a plot” in the City Office');
  }
  scanCivic();renderOffice();updateCivicHud();
+};
+window.__clearOffice=function(all){
+ requests.length=0;
+ if(all){people.length=0;talkIdx=-1;}
+ renderOffice();updateCivicHud();
+ toast(all?'City Office cleared — old plots and requests removed':'Pending requests cleared');
 };
 window.__talk=function(i){talkIdx=i;renderOffice()};
 window.__talkClose=function(){talkIdx=-1;renderOffice()};
@@ -2888,15 +2925,21 @@ function applyOne(id,gx,gz){
  if(id==='farm'){if(c.t!==0||c.b){toast('Farmland needs empty grass');return false}if(!spend(150))return false;c.t=3;c.crop=(Math.random()*8)|0;c.trees=[];touch(c);return true}
  if(id==='rail'){
   if(c.b){toast('Demolish it first');return false}
-  if(c.t!==0&&c.t!==7){toast('Lay railway track on open ground');return false}
+  if(c.t!==0&&c.t!==7&&c.t!==2){toast('Lay railway track on ground or across water');return false}
   if(!spend(90))return false;
-  c.b=mkB('railline',gx,gz,0,'');c.trees=[];touch(c);toast('Railway track laid');return true;
+  const overWater=c.t===2;
+  c.b=mkB('railline',gx,gz,0,'');c.trees=[];touch(c);
+  toast(overWater?'Railway bridge built across the water':'Railway track laid');
+  return true;
  }
  if(id==='metroline'){
-  if(c.b){toast('Demolish it first');return false}
-  if(c.t===2){toast('Metro needs ground or a road below');return false}
+  const under=(c.b&&(c.b.kind==='wall'||c.b.kind==='gate'))?c.b.kind:null;
+  if(c.b&&!under){toast('Demolish it first');return false}
   if(!spend(320))return false;
-  c.b=mkB('metroline',gx,gz,0,'');c.trees=[];touch(c);toast('Metro viaduct built — it runs above the road');return true;
+  c.b=mkB('metroline',gx,gz,0,under||'');c.trees=[];touch(c);
+  toast(under?'Metro viaduct built over the boundary — the wall stays below'
+   :(c.t===2?'Metro viaduct built across the water':'Metro viaduct built — it runs above the road'));
+  return true;
  }
  if(id==='trafficpost'){
   if(c.t!==1){toast('Traffic posts go on a road tile');return false}
