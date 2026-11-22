@@ -303,7 +303,13 @@
     box-shadow: 0 16px 44px rgba(15, 23, 42, .16); backdrop-filter: blur(16px); }
   .panel-head { padding: 0 2px 6px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
   .panel-head-title { font-size: 12.5px; font-weight: 650; letter-spacing: -.1px; color: var(--ink-dark); }
-  .panel-close { width: 24px; height: 24px; border-radius: 6px; color: var(--ink-muted); font-size: 12px; }
+  .panel-close { width: 44px; height: 44px; min-width: 44px; min-height: 44px; border-radius: 10px;
+    color: var(--ink-muted); font-size: 15px; line-height: 1; display: grid; place-items: center;
+    background: transparent; border: none; cursor: pointer; position: relative; z-index: 3;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  .panel-close:hover { background: rgba(15,23,42,.06); color: var(--ink-dark); }
+  .panel-close:active { background: rgba(15,23,42,.10); }
+  .panel-head { min-height: 44px; align-items: center; }
   .panel-close:hover { background: rgba(15,23,42,.05); color: var(--ink-dark); }
   .panel-search { border: 1px solid var(--bar-border); border-radius: 9px; padding: 6px 9px; background: #fff; }
   .panel-search input { font-size: 12.5px; font-weight: 500; }
@@ -384,8 +390,11 @@
   /* ================= tool grid: never empty, never clipped ================= */
   #bottom-bar-wrap { width: min(384px, 94vw) !important; max-width: min(384px, 94vw);
     max-height: min(76vh, 560px); overflow-y: auto; overscroll-behavior: contain;
-    display: flex !important; flex-direction: column !important;
+    flex-direction: column !important;
     grid-template-rows: none !important; grid-template-columns: none !important; gap: 8px !important; }
+  /* closed by default, flex only when .open is set - this is what makes the X hide it */
+  #bottom-bar-wrap:not(.open) { display: none !important; }
+  #bottom-bar-wrap.open { display: flex !important; }
   #bottom-bar-wrap > * { flex: 0 0 auto; min-height: 0; }
   #bottom-bar-wrap .build-dock { display: flex !important; flex-wrap: wrap !important; gap: 6px !important;
     grid-template-columns: none !important; grid-auto-rows: auto !important; align-content: flex-start;
@@ -3953,7 +3962,17 @@ requestAnimationFrame(frame);
     });
     search.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
   }
-  if (closeBtn) closeBtn.addEventListener("click", function () { setOpen(false); });
+  function closePanel(e) { if (e && e.preventDefault) e.preventDefault(); setOpen(false); }
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closePanel);
+    closeBtn.addEventListener("pointerup", closePanel);
+    closeBtn.addEventListener("touchend", closePanel, { passive: false });
+  }
+  // delegated fallback: works even if the direct binding was lost
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (t && t.closest && t.closest("#panel-close")) closePanel(e);
+  }, true);
 
   // remember the last category the player used
   var LASTKEY = "owncity.lastCategory";
