@@ -2390,6 +2390,7 @@ function stepV(v,dt){
   if(v.sigW<22){target=0;v.t=Math.min(v.t,.70)} else v.sigW=0;   // never wait forever
  } else v.sigW=0;
  v.wait=target===0?(v.wait+dt):0;   // no timed release: a blocked car stays blocked
+ if(v.wait>22){v.wait=0;if(!v.fleet)pickNext(v);}   // long jam: find another way round
  v.speed+=(target-v.speed)*Math.min(1,dt*4);v.t+=v.speed*dt/T;
  while(v.t>=1){v.t-=1;v.px=v.cx;v.pz=v.cz;v.cx=v.nx;v.cz=v.nz;if(!pickNext(v)){v.t=0;v.speed=0;break}}
  const a=cc(v.cx,v.cz),b=cc(v.nx,v.nz);
@@ -2447,10 +2448,14 @@ function syncTraffic(){
  spawn('car',rp(Math.random,CARCOL),c=>c.t===1,Math.max(2,Math.round(Math.min(16,Math.floor(stats.road/22))*(1-Math.min(.55,transitN*.045)))));
  spawn('tractor',0x3e8a3f,c=>c.t===3,Math.min(3,Math.floor(stats.farm/8)));
  spawn('boat',0,c=>c.t===2,Math.min(4,Math.floor(stats.water/40)));
+ // over the limit: stop spawning and quietly trim only cars far from the camera,
+ // never the queue the player is looking at (that used to wipe whole jams)
  let over=civCount()-vehLimit;
  if(over>0){
-  const civs=vehicles.filter(v=>!v.fleet).sort((a,b)=>Math.hypot(b.x-f.x,b.z-f.z)-Math.hypot(a.x-f.x,a.z-f.z));
-  for(let i=0;i<over&&i<civs.length;i++)removeVehicle(civs[i]);
+  const far=vehicles.filter(v=>!v.fleet&&Math.hypot(v.x-f.x,v.z-f.z)>120)
+   .sort((a,b)=>Math.hypot(b.x-f.x,b.z-f.z)-Math.hypot(a.x-f.x,a.z-f.z));
+  let killed=0;
+  for(const v of far){ if(killed>=1)break; removeVehicle(v); killed++; }
  }
  let tries=0;while(peds.length<Math.min(60,Math.floor(stats.road/8))&&tries++<6)spawnPed();
  // one train per rail network, one metro per viaduct
